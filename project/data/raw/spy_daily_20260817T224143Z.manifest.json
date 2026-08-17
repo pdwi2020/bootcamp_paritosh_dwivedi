@@ -1,0 +1,16 @@
+{
+  "provider": "yfinance",
+  "symbol": "SPY",
+  "start": "2010-01-01",
+  "end": "2026-08-17",
+  "retrieved_at_utc": "2026-08-17T22:41:43.960518+00:00",
+  "rows": 4180,
+  "limitations": [
+    "Yahoo Finance is a third-party source and may change schema or availability.",
+    "Adjusted prices can be revised after corporate-action updates."
+  ],
+  "validation": "passed",
+  "file": "spy_daily_20260817T224143Z.csv",
+  "sha256": "38cf70ea774e977e960b4779ce4235016dd27ad6c5b366dd38295a37f844e2cc",
+  "bytes": 492892
+}

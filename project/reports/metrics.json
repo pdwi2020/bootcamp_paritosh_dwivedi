@@ -1,0 +1,175 @@
+{
+  "project": "Weekly ETF Risk Monitor",
+  "sole_author": "Paritosh Dwivedi",
+  "generated_at_utc": "2026-08-17T22:55:26.096278+00:00",
+  "ticker": "SPY",
+  "data": {
+    "raw_file": "data/raw/spy_daily_20260817T224143Z.csv",
+    "processed_clean_file": "data/processed/spy_clean.parquet",
+    "model_dataset_file": "data/processed/spy_model_dataset.parquet",
+    "rows_raw": 4180,
+    "rows_model_dataset": 4180,
+    "date_start": "2010-01-04",
+    "date_end": "2026-08-17",
+    "acquisition": {
+      "provider": "yfinance",
+      "symbol": "SPY",
+      "start": "2010-01-01",
+      "end": "2026-08-17",
+      "retrieved_at_utc": "2026-08-17T22:41:43.960518+00:00",
+      "rows": 4180,
+      "limitations": [
+        "Yahoo Finance is a third-party source and may change schema or availability.",
+        "Adjusted prices can be revised after corporate-action updates."
+      ],
+      "validation": "passed",
+      "file": "spy_daily_20260817T224143Z.csv",
+      "sha256": "38cf70ea774e977e960b4779ce4235016dd27ad6c5b366dd38295a37f844e2cc",
+      "bytes": 492892,
+      "pipeline_mode": "cached_raw_input"
+    },
+    "raw_validation": {
+      "rows": 4180,
+      "columns": [
+        "date",
+        "open",
+        "high",
+        "low",
+        "close",
+        "adjusted_close",
+        "volume",
+        "dividends",
+        "stock_splits"
+      ],
+      "missing_required_columns": [],
+      "duplicate_dates": 0,
+      "missing_values": 0,
+      "errors": [],
+      "warnings": [],
+      "valid": true
+    },
+    "cleaning": {
+      "rows_before": 4180,
+      "rows_after": 4180,
+      "rows_removed": 0,
+      "date_start": "2010-01-04",
+      "date_end": "2026-08-17",
+      "missing_after": 0,
+      "duplicate_dates_after": 0,
+      "policy": [
+        "Unparseable or incomplete required rows are removed.",
+        "Non-positive prices, negative volume, and internally inconsistent OHLC rows are removed.",
+        "Duplicate dates retain the final provider record.",
+        "Missing adjusted close falls back to close."
+      ]
+    },
+    "return_outliers_flagged": 31
+  },
+  "models": {
+    "feature_columns": [
+      "return_lag_1",
+      "return_lag_5",
+      "rolling_return_5",
+      "rolling_vol_5",
+      "rolling_vol_20",
+      "ewma_vol_20",
+      "vol_ratio",
+      "drawdown",
+      "volume_z_20",
+      "return_outlier_flag"
+    ],
+    "train_rows": 3340,
+    "test_rows": 835,
+    "train_start": "2010-01-04",
+    "train_end": "2023-04-11",
+    "test_start": "2023-04-12",
+    "test_end": "2026-08-10",
+    "risk_quantile": 0.75,
+    "risk_threshold_annualized_vol": 0.17830726807863276,
+    "regression": {
+      "ridge": {
+        "mae": 0.04021380034852036,
+        "rmse": 0.06586536245331256,
+        "r2": 0.33497080820671377
+      },
+      "recent_volatility_baseline": {
+        "mae": 0.05073643931300341,
+        "rmse": 0.0864132648900294,
+        "r2": -0.14468862015109685
+      },
+      "historical_mean_baseline": {
+        "mae": 0.05167941188693652,
+        "rmse": 0.08210604486408106,
+        "r2": -0.03341985554382987
+      },
+      "ridge_mae_improvement_vs_recent": 0.20739805762810337
+    },
+    "classification": {
+      "logistic": {
+        "accuracy": 0.8107784431137725,
+        "balanced_accuracy": 0.723072520033846,
+        "precision": 0.3701657458563536,
+        "recall": 0.6036036036036037,
+        "f1": 0.4589041095890411,
+        "roc_auc": 0.7770519137922453
+      },
+      "prior_baseline": {
+        "accuracy": 0.8670658682634731,
+        "balanced_accuracy": 0.5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "roc_auc": 0.5
+      },
+      "test_elevated_rate": 0.13293413173652693
+    }
+  },
+  "sensitivity": [
+    {
+      "risk_quantile": 0.7,
+      "risk_threshold_annualized_vol": 0.1632479913201352,
+      "balanced_accuracy": 0.7058720533756013,
+      "precision": 0.44761904761904764,
+      "recall": 0.5838509316770186,
+      "f1": 0.5067385444743935
+    },
+    {
+      "risk_quantile": 0.75,
+      "risk_threshold_annualized_vol": 0.17830726807863276,
+      "balanced_accuracy": 0.723072520033846,
+      "precision": 0.3701657458563536,
+      "recall": 0.6036036036036037,
+      "f1": 0.4589041095890411
+    },
+    {
+      "risk_quantile": 0.8,
+      "risk_threshold_annualized_vol": 0.19658597101440128,
+      "balanced_accuracy": 0.7263475310968714,
+      "precision": 0.3283582089552239,
+      "recall": 0.5714285714285714,
+      "f1": 0.41706161137440756
+    }
+  ],
+  "latest_risk_snapshot": {
+    "as_of_date": "2026-08-17",
+    "adjusted_close": 772.6699829101562,
+    "rolling_vol_20": 0.13493320335371817,
+    "predicted_next_week_vol": 0.11134651129801958,
+    "elevated_risk_probability": 0.2222931949429154,
+    "risk_threshold_annualized_vol": 0.17830726807863276,
+    "risk_classification": "normal",
+    "decision_language": "The model does not flag elevated risk; maintain exposure only within the existing mandate."
+  },
+  "artifacts": {
+    "predictions": "reports/model_predictions.csv",
+    "sensitivity": "reports/risk_threshold_sensitivity.csv",
+    "model": "model/risk_models.joblib",
+    "figures": [
+      "reports/images/price_and_drawdown.png",
+      "reports/images/volatility_and_risk_threshold.png",
+      "reports/images/regression_predictions.png",
+      "reports/images/return_distribution.png",
+      "reports/images/classification_confusion_matrix.png"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+# Instructor materials are local references, not submissions.
+class_materials/
+
+# Secrets and local configuration.
+.env
+project/.env
+
+# Python environments and caches.
+.venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter and editors.
+.ipynb_checkpoints/
+.vscode/
+.idea/
+
+# Operating-system clutter.
+.DS_Store
+
+# Temporary build files.
+tmp/
+*.tmp
+*.inspect.ndjson
