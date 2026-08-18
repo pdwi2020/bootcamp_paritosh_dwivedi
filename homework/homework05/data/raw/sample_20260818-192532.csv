@@ -1,0 +1,7 @@
+date,ticker,next_five_session_vol_forecast,elevated_risk_score,risk_flag
+2026-08-10,SPY,0.128,0.312,normal
+2026-08-11,SPY,0.124,0.298,normal
+2026-08-12,SPY,0.121,0.284,normal
+2026-08-13,SPY,0.117,0.271,normal
+2026-08-14,SPY,0.114,0.259,normal
+2026-08-17,SPY,0.113,0.252,normal
