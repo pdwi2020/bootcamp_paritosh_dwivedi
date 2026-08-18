@@ -61,3 +61,28 @@ def build_manifest(data_path: str | Path, metadata: dict[str, Any]) -> dict[str,
         "sha256": sha256_file(source),
         "bytes": source.stat().st_size,
     }
+
+
+def validate_manifest(data_path: str | Path, manifest: dict[str, Any]) -> dict[str, Any]:
+    """Verify a cached raw file against its recorded name, size, and digest."""
+
+    source = Path(data_path)
+    expected_file = manifest.get("file")
+    expected_bytes = manifest.get("bytes")
+    expected_sha256 = manifest.get("sha256")
+    errors: list[str] = []
+    if expected_file != source.name:
+        errors.append(f"file name expected {expected_file!r}, found {source.name!r}")
+    if expected_bytes != source.stat().st_size:
+        errors.append(f"size expected {expected_bytes!r}, found {source.stat().st_size}")
+    actual_sha256 = sha256_file(source)
+    if expected_sha256 != actual_sha256:
+        errors.append("SHA-256 digest does not match")
+    if errors:
+        raise ValueError(f"Raw-data manifest validation failed for {source.name}: " + "; ".join(errors))
+    return {
+        "valid": True,
+        "file": source.name,
+        "bytes": source.stat().st_size,
+        "sha256": actual_sha256,
+    }

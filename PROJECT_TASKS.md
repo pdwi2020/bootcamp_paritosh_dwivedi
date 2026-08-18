@@ -24,6 +24,21 @@
 - [x] Run unit tests, artifact checks, duplicate-date checks, secret scan, notebook error audit, and slide overflow test.
 - [x] Confirm Paritosh Dwivedi is the only named author and presenter.
 
+## Full-review remediation
+
+- [x] Add a five-session embargo between training targets and the holdout period.
+- [x] Fit return-outlier parameters on training data only and persist them with the models.
+- [x] Describe classifier output as a risk score and add calibration diagnostics.
+- [x] Keep holdout evaluation separate from a final production refit on all labeled data.
+- [x] Report non-overlapping-window, calendar-year, residual-tail, feature-window, outlier-ablation, and walk-forward diagnostics.
+- [x] Use one documented elevated-risk decision rule across code, reports, notebooks, and slides.
+- [x] Validate cached raw-data manifests before reuse.
+- [x] Correct Alpha Vantage adjusted-price ingestion.
+- [x] Expand unit and artifact verification coverage.
+- [x] Standardize notebook kernels on portable `python3` and execute both notebooks top to bottom.
+- [x] Track the presentation generator and regenerate the deck with correct core authorship metadata.
+- [x] Run the complete workflow in a clean clone and commit the verified result.
+
 ## Submission actions requiring Paritosh Dwivedi
 
 - [ ] Review the notebook, README, and presentation until every method and conclusion can be explained without assistance.

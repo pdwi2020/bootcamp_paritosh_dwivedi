@@ -17,7 +17,7 @@ def _normalize_market_frame(frame: pd.DataFrame) -> pd.DataFrame:
     result = frame.copy()
     if isinstance(result.columns, pd.MultiIndex):
         result.columns = [str(column[0]) for column in result.columns]
-    result = result.reset_index()
+    result = result.reset_index() if "date" not in result.columns else result.reset_index(drop=True)
     result = clean_columns(result)
     result = result.rename(
         columns={
@@ -86,7 +86,7 @@ def fetch_yfinance(symbol: str, start: str, end: str) -> tuple[pd.DataFrame, dic
 def fetch_alpha_vantage(
     symbol: str, start: str, end: str, api_key: str
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
-    """Download daily data through Alpha Vantage's TIME_SERIES_DAILY endpoint."""
+    """Download split/dividend-adjusted daily data through Alpha Vantage."""
 
     import requests
 
@@ -94,7 +94,7 @@ def fetch_alpha_vantage(
     response = requests.get(
         endpoint,
         params={
-            "function": "TIME_SERIES_DAILY",
+            "function": "TIME_SERIES_DAILY_ADJUSTED",
             "symbol": symbol,
             "outputsize": "full",
             "apikey": api_key,
@@ -115,25 +115,27 @@ def fetch_alpha_vantage(
             "2. high": "high",
             "3. low": "low",
             "4. close": "close",
-            "5. volume": "volume",
+            "5. adjusted close": "adjusted_close",
+            "6. volume": "volume",
+            "7. dividend amount": "dividends",
+            "8. split coefficient": "stock_splits",
         }
     )
-    frame["adjusted_close"] = frame["close"]
     frame = _normalize_market_frame(frame)
     mask = frame["date"].between(pd.Timestamp(start), pd.Timestamp(end))
     normalized = frame.loc[mask].reset_index(drop=True)
     metadata = {
         "provider": "alpha_vantage",
         "endpoint": endpoint,
-        "function": "TIME_SERIES_DAILY",
+        "function": "TIME_SERIES_DAILY_ADJUSTED",
         "symbol": symbol,
         "start": start,
         "end": end,
         "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
         "rows": int(len(normalized)),
         "limitations": [
-            "Unadjusted close is used because the free daily endpoint does not guarantee adjusted values.",
-            "Free-tier rate limits may interrupt refreshes.",
+            "Adjusted daily access and rate limits depend on the Alpha Vantage subscription tier.",
+            "If unavailable in auto mode, the documented yfinance adapter is used as fallback.",
         ],
     }
     return normalized, metadata

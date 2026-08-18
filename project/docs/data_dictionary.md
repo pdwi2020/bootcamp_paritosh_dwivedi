@@ -17,6 +17,7 @@
 | `vol_ratio` | Five-day volatility divided by twenty-day volatility | Feature |
 | `drawdown` | Percentage decline from the historical running maximum | Feature |
 | `volume_z_20` | Volume standardized against the trailing twenty-day window | Feature |
-| `return_outlier_flag` | Robust-MAD indicator for an extreme retained return | Feature |
-| `target_next_week_vol` | Annualized realized volatility over the next five trading days | Target |
+| `return_outlier_flag` | Robust-MAD indicator for an extreme retained return; parameters are fit only on the allowed training history | Feature |
+| `target_next_week_vol` | Annualized realized volatility over the next five trading days; adjacent daily targets overlap | Target |
 | `target_next_week_return` | Sum of daily returns over the next five trading days | Supporting target |
+| `elevated_risk_score` | Class-weighted logistic score used with a 0.50 cutoff; not a calibrated probability | Prediction |

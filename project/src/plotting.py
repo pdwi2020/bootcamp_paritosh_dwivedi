@@ -59,7 +59,7 @@ def plot_volatility_and_threshold(
         recent["target_next_week_vol"],
         color=LIGHT_BLUE,
         alpha=0.65,
-        label="Next-week realized volatility",
+        label="Next-five-session realized volatility",
     )
     ax.axhline(threshold, color=RED, linestyle="--", label="Elevated-risk threshold")
     ax.set_title(f"{ticker} volatility context (latest three trading years)")
@@ -81,10 +81,10 @@ def plot_regression_predictions(
     fig, ax = plt.subplots(figsize=(11, 5.2))
     ax.plot(
         recent["date"],
-        recent["actual_next_week_vol"],
+        recent["actual_next_five_day_vol"],
         color=BLACK,
         linewidth=1.2,
-        label="Actual next-week volatility",
+        label="Actual next-five-session volatility",
     )
     ax.plot(
         recent["date"],

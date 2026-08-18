@@ -7,7 +7,7 @@
 
 ## Project summary
 
-This project builds a reproducible Python pipeline that helps a portfolio manager decide whether current SPY exposure merits additional investigation because near-term market risk appears elevated. It converts daily price and volume history into a five-trading-day volatility forecast, an elevated-risk probability, and a concise stakeholder interpretation.
+This project builds a reproducible Python pipeline that helps a portfolio manager decide whether current SPY exposure merits additional investigation because near-term market risk appears elevated. It converts daily price and volume history into a five-trading-day volatility forecast, an elevated-risk score, and a concise stakeholder interpretation. The score comes from class-weighted logistic regression and is not presented as a calibrated event probability.
 
 The project is intentionally narrow. It supports one recurring risk-review decision for one liquid ETF. It does not execute trades, optimize a portfolio, claim causal effects, or guarantee future performance.
 
@@ -15,7 +15,7 @@ The project is intentionally narrow. It supports one recurring risk-review decis
 
 The stakeholder and user is a portfolio manager who reviews ETF exposure weekly. The useful answer contains:
 
-- predicted next-week annualized realized volatility;
+- predicted next-five-session annualized realized volatility;
 - a normal-risk or elevated-risk classification;
 - recent volatility, return, drawdown, and volume context;
 - a plain-language decision interpretation;
@@ -25,28 +25,39 @@ The stakeholder and user is a portfolio manager who reviews ETF exposure weekly.
 
 Using data through August 17, 2026, the model produces a **NORMAL** relative-risk classification:
 
-- Predicted next-week annualized volatility: **11.1%**
-- Elevated-risk probability: **22.2%**
-- Training-derived elevated-risk threshold: **17.8%**
+- Predicted next-five-session annualized volatility: **11.3%**
+- Elevated-risk score: **25.2%**
+- Elevated-risk decision rule: **score >= 50%**
+- All-labeled-history elevated-risk threshold: **17.1%**
 - Current 20-day annualized volatility: **13.5%**
 
 Decision interpretation: the model does not flag elevated risk. Maintain exposure only within the existing mandate and continue monitoring; a normal flag is not a claim that the position is safe.
 
 ## Out-of-sample evidence
 
-The split is chronological, with training observations preceding all test observations.
+The split is chronological and purged: five observations are embargoed between the last training row and the holdout start so no training target contains a holdout date. The primary holdout contains 835 overlapping daily five-session forecast windows; five offset samples provide non-overlapping robustness checks.
 
 | Measure | Result |
 |---|---:|
 | Ridge regression MAE | 0.0402 |
 | Recent-volatility baseline MAE | 0.0507 |
 | Ridge MAE improvement vs recent-volatility baseline | 20.7% |
-| Ridge regression R-squared | 0.335 |
-| Elevated-risk balanced accuracy | 72.3% |
-| Elevated-risk recall | 60.4% |
+| Ridge regression R-squared | 0.336 |
+| Elevated-risk balanced accuracy | 72.7% |
+| Elevated-risk recall | 61.3% |
 | Elevated-risk ROC AUC | 0.777 |
 
 The classifier sacrifices overall accuracy to identify more elevated-risk periods. The prior baseline obtains high raw accuracy by predicting the majority class but has zero elevated-risk recall, so balanced accuracy and recall are more useful decision metrics.
+
+## Robustness and limits
+
+- Across the five non-overlapping offsets, Ridge improves MAE over recent volatility by 16.6% to 23.5%; balanced accuracy ranges from 68.3% to 75.8%, and recall from 52.4% to 68.2%.
+- Calendar-year recall varies from 33.3% in 2024 to 83.3% in 2025, confirming regime sensitivity.
+- Four expanding walk-forward folds with a five-session embargo produce 18.6% aggregate MAE improvement, 79.3% balanced accuracy, and 74.1% recall across 3,340 forecast windows.
+- Ridge underpredicts the highest realized-volatility decile by 8.5 percentage points on average; tail forecasts therefore require caution.
+- Alternative 10/30- and 10/60-session feature windows do not overturn the general result, but the longer specification reduces classification recall.
+- Removing the return-outlier flag changes results only slightly, so it is retained as contextual information rather than treated as a dominant signal.
+- The class-weighted logistic score has a 33.9% holdout mean versus a 13.3% event rate; its Brier score is 0.143. Treat it as a ranking/decision score, not a literal probability.
 
 ## Repository structure
 
@@ -121,6 +132,8 @@ cd project && ../.venv/bin/python verify_project.py
 
 The cumulative notebook repeats the complete analysis in a stakeholder-readable sequence and has been executed top-to-bottom.
 
+The notebook sources can be refreshed with `project/notebooks/build_notebooks.py` and then executed with a standard `python3` Jupyter kernel.
+
 ## Data acquisition and storage
 
 The recorded raw dataset contains 4,180 daily SPY observations from January 4, 2010 through August 17, 2026. The successful refresh used yfinance. Each raw CSV is paired with a JSON manifest recording provider, symbol, requested dates, retrieval time, file size, limitations, and SHA-256 digest.
@@ -144,7 +157,7 @@ The cleaning stage:
 - falls back to close when adjusted close is missing;
 - revalidates the result before feature construction.
 
-Extreme returns are detected with a robust median absolute-deviation score. Thirty-one observations were flagged in the current dataset. Plausible market extremes are retained because deleting them would understate the risk problem the project is designed to monitor.
+Extreme returns are detected with a robust median absolute-deviation score. Evaluation-period location and scale parameters are fit on the purged training data only; the production artifact refits them on all labeled history. Thirty-one observations were flagged in the current dataset. Plausible market extremes are retained because deleting them would understate the risk problem the project is designed to monitor.
 
 ## Features, targets, and models
 
@@ -159,15 +172,17 @@ All features use contemporaneous or past information:
 - twenty-day standardized volume;
 - retained-return outlier flag.
 
-The regression target is annualized realized volatility over the next five trading days. Ridge regression is compared with recent-volatility and historical-mean baselines.
+The regression target is annualized realized volatility over the next five trading days. A target is constructed for each eligible day, so adjacent forecast windows overlap. Ridge regression is compared with recent-volatility and historical-mean baselines.
 
-The elevated-risk label equals one when the regression target exceeds the training-period volatility quantile. Logistic regression uses class weighting because elevated-risk periods are less frequent. Threshold sensitivity is reported at the 70th, 75th, and 80th percentiles.
+The elevated-risk label equals one when the regression target exceeds the training-period volatility quantile. Logistic regression uses class weighting because elevated-risk periods are less frequent. A risk score of at least 50% is the sole classification trigger; the volatility forecast and training-derived target threshold provide context but do not independently change the classification. Threshold sensitivity is reported at the 70th, 75th, and 80th percentiles.
+
+Holdout models are retained only for honest historical evaluation. The saved production bundle is a separate refit on all 4,175 labeled rows through August 10, 2026, and it is the model used for the current August 17 signal.
 
 ## Assumptions and risks
 
 Key assumptions include a five-day weekly horizon, reliable provider history, and partial persistence of historical risk relationships. Important risks include provider schema changes, corporate-action revisions, regime change, false reassurance, model instability, target-threshold sensitivity, and time-series leakage.
 
-Mitigations include immutable snapshots, schema validation, chronological splits, lagged features, baseline comparisons, sensitivity analysis, and explicit stakeholder caveats. See `docs/assumptions_and_risks.md` and `docs/decision_log.md` for the complete record.
+Mitigations include immutable snapshots with hash validation, purged chronological splits, train-only preprocessing, lagged features, baseline comparisons, non-overlapping and walk-forward checks, sensitivity analysis, and explicit stakeholder caveats. See `docs/assumptions_and_risks.md` and `docs/decision_log.md` for the complete record.
 
 ## Lifecycle mapping
 
