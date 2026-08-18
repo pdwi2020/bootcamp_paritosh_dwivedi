@@ -8,7 +8,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(PROJECT_ROOT / ".env")
 
@@ -21,11 +20,9 @@ class Settings:
     ticker: str = os.getenv("PRIMARY_TICKER", "SPY").upper()
     provider: str = os.getenv("DATA_PROVIDER", "auto").lower()
     start_date: str = os.getenv("DATA_START", "2010-01-01")
-    end_date: str = os.getenv("DATA_END", "2026-08-17")
+    end_date: str | None = os.getenv("DATA_END") or None
     raw_dir: Path = PROJECT_ROOT / os.getenv("DATA_DIR_RAW", "data/raw")
-    processed_dir: Path = PROJECT_ROOT / os.getenv(
-        "DATA_DIR_PROCESSED", "data/processed"
-    )
+    processed_dir: Path = PROJECT_ROOT / os.getenv("DATA_DIR_PROCESSED", "data/processed")
     reports_dir: Path = PROJECT_ROOT / "reports"
     images_dir: Path = PROJECT_ROOT / "reports/images"
     model_dir: Path = PROJECT_ROOT / "model"

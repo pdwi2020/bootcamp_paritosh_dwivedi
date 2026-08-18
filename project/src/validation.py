@@ -6,7 +6,6 @@ from typing import Any
 
 import pandas as pd
 
-
 REQUIRED_MARKET_COLUMNS = {
     "date",
     "open",
@@ -23,6 +22,8 @@ def validate_market_data(frame: pd.DataFrame, *, raise_on_error: bool = True) ->
 
     errors: list[str] = []
     warnings: list[str] = []
+    if frame.empty:
+        errors.append("Market data contains no rows")
     missing_columns = sorted(REQUIRED_MARKET_COLUMNS.difference(frame.columns))
     if missing_columns:
         errors.append(f"Missing required columns: {missing_columns}")

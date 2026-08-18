@@ -26,6 +26,18 @@ def write_dataframe(frame: pd.DataFrame, path: str | Path) -> Path:
     return destination
 
 
+def write_immutable_csv(frame: pd.DataFrame, path: str | Path) -> Path:
+    """Create a CSV snapshot exclusively and refuse to replace an existing file."""
+
+    destination = Path(path)
+    if destination.suffix.lower() != ".csv":
+        raise ValueError("Immutable raw snapshots must use CSV format")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with destination.open("x", encoding="utf-8", newline="") as handle:
+        frame.to_csv(handle, index=False)
+    return destination
+
+
 def read_dataframe(path: str | Path) -> pd.DataFrame:
     """Read CSV or Parquet while parsing a conventional date column."""
 
@@ -79,7 +91,9 @@ def validate_manifest(data_path: str | Path, manifest: dict[str, Any]) -> dict[s
     if expected_sha256 != actual_sha256:
         errors.append("SHA-256 digest does not match")
     if errors:
-        raise ValueError(f"Raw-data manifest validation failed for {source.name}: " + "; ".join(errors))
+        raise ValueError(
+            f"Raw-data manifest validation failed for {source.name}: " + "; ".join(errors)
+        )
     return {
         "valid": True,
         "file": source.name,

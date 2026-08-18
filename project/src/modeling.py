@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -20,7 +21,6 @@ from .outliers import (
     fit_return_outlier_parameters,
     score_return_outliers,
 )
-
 
 RISK_SCORE_CUTOFF = 0.50
 
@@ -176,12 +176,8 @@ def _fit_pair(
             "prior_baseline": prior_result,
             "test_elevated_rate": float(y_test_class.mean()),
             "test_elevated_windows": int(y_test_class.sum()),
-            "elevated_windows_caught": int(
-                ((y_test_class == 1) & (risk_prediction == 1)).sum()
-            ),
-            "elevated_windows_missed": int(
-                ((y_test_class == 1) & (risk_prediction == 0)).sum()
-            ),
+            "elevated_windows_caught": int(((y_test_class == 1) & (risk_prediction == 1)).sum()),
+            "elevated_windows_missed": int(((y_test_class == 1) & (risk_prediction == 0)).sum()),
             "risk_score_cutoff": RISK_SCORE_CUTOFF,
             "score_interpretation": (
                 "Class-weighted logistic output used for ranking and the decision rule; "
@@ -267,9 +263,7 @@ def _residual_diagnostics(predictions: pd.DataFrame) -> dict[str, float]:
             residual[high_quartile].mean()
         ),
         "highest_actual_vol_quartile_mae": float(residual[high_quartile].abs().mean()),
-        "top_actual_vol_decile_mean_actual_minus_predicted": float(
-            residual[top_decile].mean()
-        ),
+        "top_actual_vol_decile_mean_actual_minus_predicted": float(residual[top_decile].mean()),
         "top_actual_vol_decile_mae": float(residual[top_decile].abs().mean()),
     }
 
@@ -309,9 +303,7 @@ def _walk_forward_diagnostics(
                 "ridge_mae_improvement_vs_recent": results["regression"][
                     "ridge_mae_improvement_vs_recent"
                 ],
-                "balanced_accuracy": results["classification"]["logistic"][
-                    "balanced_accuracy"
-                ],
+                "balanced_accuracy": results["classification"]["logistic"]["balanced_accuracy"],
                 "recall": results["classification"]["logistic"]["recall"],
             }
         )
@@ -396,17 +388,13 @@ def fit_risk_models(
                 "The primary holdout contains daily five-session forecast windows, which overlap. "
                 "Each offset below samples one non-overlapping sequence."
             ),
-            "non_overlapping_windows": _non_overlapping_diagnostics(
-                predictions, horizon=horizon
-            ),
+            "non_overlapping_windows": _non_overlapping_diagnostics(predictions, horizon=horizon),
             "calendar_year": _yearly_diagnostics(predictions),
             "residuals": _residual_diagnostics(predictions),
             "outlier_feature_ablation": {
                 "with_flag": {
                     "ridge_mae": results["regression"]["ridge"]["mae"],
-                    "balanced_accuracy": results["classification"]["logistic"][
-                        "balanced_accuracy"
-                    ],
+                    "balanced_accuracy": results["classification"]["logistic"]["balanced_accuracy"],
                     "recall": results["classification"]["logistic"]["recall"],
                 },
                 "without_flag": {

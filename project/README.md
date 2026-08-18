@@ -1,4 +1,4 @@
-# Weekly ETF Risk Monitor
+# Weekly ETF risk monitor
 
 **Sole author:** Paritosh Dwivedi
 **Primary ETF:** SPY
@@ -41,7 +41,7 @@ The split is chronological and purged: five observations are embargoed between t
 |---|---:|
 | Ridge regression MAE | 0.0402 |
 | Recent-volatility baseline MAE | 0.0507 |
-| Ridge MAE improvement vs recent-volatility baseline | 20.7% |
+| Ridge MAE improvement vs recent-volatility baseline | 20.8% |
 | Ridge regression R-squared | 0.336 |
 | Elevated-risk balanced accuracy | 72.7% |
 | Elevated-risk recall | 61.3% |
@@ -80,59 +80,77 @@ project/
 |   |-- features.py
 |   |-- modeling.py
 |   |-- evaluation.py
-|   `-- plotting.py
+|   |-- plotting.py
+|   `-- presentation.py
 |-- tests/
 |-- docs/
 |-- reports/
 |   `-- images/
 |-- model/
+|-- build_presentation.py
+|-- Makefile
+|-- pyproject.toml
 |-- run_pipeline.py
 |-- verify_project.py
+|-- requirements.lock.txt
 |-- requirements.txt
 |-- .env.example
 `-- README.md
 ```
 
-## Setup
+## Install the locked environment
 
-From the repository root:
+From the repository root, enter the project directory before using its Make targets:
 
 ```bash
-uv venv --python 3.11 .venv
-uv pip install --python .venv/bin/python -r project/requirements.txt
-cp project/.env.example project/.env
+cd project
+make setup
+cp .env.example .env
 ```
 
-The default `.env.example` uses SPY, a January 2010 start date, an August 17, 2026 end date, a 20% chronological test set, and a training-period 75th-percentile elevated-risk threshold.
+`make setup` installs the complete hash-locked dependency graph from `requirements.lock.txt`. After changing a direct pin in `requirements.txt`, run `make lock` from `project/` to regenerate the lockfile.
+
+The default `.env.example` uses SPY, a January 2010 start date, a 20% chronological test set, and a training-period 75th-percentile elevated-risk threshold. `DATA_END` is blank by default, so `--refresh` acquires data through the current date. Set it explicitly when you need a frozen cutoff.
 
 An Alpha Vantage key is optional. If `ALPHAVANTAGE_API_KEY` is empty and `DATA_PROVIDER=auto`, the pipeline uses the course-supported yfinance fallback.
 
-## Run
+## Run the pipeline and quality gates
 
-Use the latest validated immutable raw snapshot:
+From the repository root, enter `project/` once and use the latest validated immutable raw snapshot:
 
 ```bash
 cd project
-../.venv/bin/python run_pipeline.py
+make pipeline
 ```
 
-Acquire and preserve a new raw snapshot:
+Acquire and preserve a new raw snapshot through `DATA_END` or the current date:
 
 ```bash
-cd project
 ../.venv/bin/python run_pipeline.py --refresh
 ```
 
-Run tests and final verification from the repository root:
+Run the local quality gates and pipeline from `project/`:
 
 ```bash
-.venv/bin/python -m pytest project/tests -q
-cd project && ../.venv/bin/python verify_project.py
+make lint
+make test
+make pipeline
+make verify
 ```
 
-The cumulative notebook repeats the complete analysis in a stakeholder-readable sequence and has been executed top-to-bottom.
+The cumulative notebook repeats the complete analysis in a stakeholder-readable sequence and has been executed top-to-bottom. Regenerate and execute both notebooks with the locked project environment:
 
-The notebook sources can be refreshed with `project/notebooks/build_notebooks.py` and then executed with a standard `python3` Jupyter kernel.
+```bash
+make notebooks
+```
+
+The editable presentation is generated entirely from the locked Python environment with `python-pptx`. From `project/`, run:
+
+```bash
+make presentation
+```
+
+The target runs `build_presentation.py`, which delegates to `src/presentation.py` and writes `reports/stakeholder_presentation.pptx`. The build has no Node dependency; charts remain editable PowerPoint charts, and every reported result is read from the committed project data and reports.
 
 ## Data acquisition and storage
 

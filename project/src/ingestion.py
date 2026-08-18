@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 import pandas as pd
@@ -73,7 +73,7 @@ def fetch_yfinance(symbol: str, start: str, end: str) -> tuple[pd.DataFrame, dic
         "symbol": symbol,
         "start": start,
         "end": end,
-        "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
+        "retrieved_at_utc": datetime.now(UTC).isoformat(),
         "rows": int(len(normalized)),
         "limitations": [
             "Yahoo Finance is a third-party source and may change schema or availability.",
@@ -106,7 +106,9 @@ def fetch_alpha_vantage(
     series = payload.get("Time Series (Daily)")
     if not series:
         message = payload.get("Note") or payload.get("Information") or payload.get("Error Message")
-        raise RuntimeError(f"Alpha Vantage returned no daily series: {message or 'unknown response'}")
+        raise RuntimeError(
+            f"Alpha Vantage returned no daily series: {message or 'unknown response'}"
+        )
 
     frame = pd.DataFrame.from_dict(series, orient="index").rename_axis("date").reset_index()
     frame = frame.rename(
@@ -131,7 +133,7 @@ def fetch_alpha_vantage(
         "symbol": symbol,
         "start": start,
         "end": end,
-        "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
+        "retrieved_at_utc": datetime.now(UTC).isoformat(),
         "rows": int(len(normalized)),
         "limitations": [
             "Adjusted daily access and rate limits depend on the Alpha Vantage subscription tier.",
@@ -174,7 +176,7 @@ def acquire_market_data(
             if attempts:
                 metadata["fallback_reason"] = attempts
             return frame, metadata
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - record provider failure before fallback.
             attempts.append(f"yfinance: {exc}")
 
     raise RuntimeError("All configured acquisition attempts failed: " + " | ".join(attempts))

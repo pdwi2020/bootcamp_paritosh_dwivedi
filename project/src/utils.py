@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -13,8 +13,8 @@ import pandas as pd
 def safe_timestamp(moment: datetime | None = None) -> str:
     """Return a filename-safe UTC timestamp."""
 
-    moment = moment or datetime.now(timezone.utc)
-    return moment.astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    moment = moment or datetime.now(UTC)
+    return moment.astimezone(UTC).strftime("%Y%m%dT%H%M%S%fZ")
 
 
 def clean_column_name(value: object) -> str:

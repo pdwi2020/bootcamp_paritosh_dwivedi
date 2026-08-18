@@ -5,7 +5,6 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-
 BASE_FEATURE_COLUMNS = [
     "return_lag_1",
     "return_lag_5",
@@ -53,15 +52,11 @@ def build_features(
     # Canonical column names are retained so saved models share one stable
     # interface; the window values are recorded alongside sensitivity results.
     result["rolling_return_5"] = price.pct_change(short_window)
-    result["rolling_vol_5"] = (
-        result["log_return"].rolling(short_window).std() * np.sqrt(252)
-    )
-    result["rolling_vol_20"] = (
-        result["log_return"].rolling(long_window).std() * np.sqrt(252)
-    )
-    result["ewma_vol_20"] = (
-        result["log_return"].ewm(span=long_window, adjust=False).std() * np.sqrt(252)
-    )
+    result["rolling_vol_5"] = result["log_return"].rolling(short_window).std() * np.sqrt(252)
+    result["rolling_vol_20"] = result["log_return"].rolling(long_window).std() * np.sqrt(252)
+    result["ewma_vol_20"] = result["log_return"].ewm(
+        span=long_window, adjust=False
+    ).std() * np.sqrt(252)
     result["vol_ratio"] = result["rolling_vol_5"] / result["rolling_vol_20"]
     result["drawdown"] = price / price.cummax() - 1.0
     volume_mean = result["volume"].rolling(long_window).mean()

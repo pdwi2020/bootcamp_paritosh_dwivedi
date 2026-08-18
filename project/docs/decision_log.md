@@ -1,4 +1,4 @@
-# Decision Log
+# Decision log
 
 **Sole author:** Paritosh Dwivedi
 
@@ -14,3 +14,5 @@
 | 2026-08-17 | Treat logistic output as a risk score | Class weighting improves minority detection but changes probability calibration. | A time-aware calibration study is added. |
 | 2026-08-17 | Separate evaluation and production fits | Holdout models support honest metrics; an all-labeled-history refit uses the latest available labels for current scoring. | The deployment protocol changes. |
 | 2026-08-17 | Use score >= 50% as the sole elevated-risk trigger | One explicit rule avoids conflicting forecast-threshold and classifier instructions. | The stakeholder selects a cost-based cutoff. |
+| 2026-08-17 | Default refreshes to the current date | A blank `DATA_END` keeps weekly refreshes current while an explicit date preserves reproducible cutoffs. | The project adopts a scheduled data service. |
+| 2026-08-17 | Create raw snapshots with exclusive writes | Microsecond timestamps reduce collisions, and exclusive file creation prevents accidental replacement. | Snapshot storage moves to an object store with native versioning. |

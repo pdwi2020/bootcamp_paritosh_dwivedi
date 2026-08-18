@@ -1,4 +1,4 @@
-# SPY Weekly Risk Monitor - Results Summary
+# SPY weekly risk monitor: results summary
 
 **Sole author:** Paritosh Dwivedi
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import joblib
@@ -29,6 +29,7 @@ from src.storage import (
     read_dataframe,
     validate_manifest,
     write_dataframe,
+    write_immutable_csv,
     write_json,
 )
 from src.utils import safe_timestamp
@@ -60,10 +61,8 @@ def _load_or_acquire(settings: Settings, refresh: bool) -> tuple[pd.DataFrame, d
         provider=settings.provider,
         alpha_vantage_key=settings.alpha_vantage_key,
     )
-    raw_path = settings.raw_dir / (
-        f"{settings.ticker.lower()}_daily_{safe_timestamp()}.csv"
-    )
-    write_dataframe(frame, raw_path)
+    raw_path = settings.raw_dir / (f"{settings.ticker.lower()}_daily_{safe_timestamp()}.csv")
+    write_immutable_csv(frame, raw_path)
     manifest = build_manifest(raw_path, metadata)
     write_json(manifest, raw_path.with_suffix(".manifest.json"))
     return frame, manifest, raw_path
@@ -75,9 +74,7 @@ def _latest_risk_snapshot(feature_frame: pd.DataFrame, production_bundle) -> dic
     predicted_vol = float(
         np.clip(production_bundle.regression_model.predict(features)[0], 0.0, None)
     )
-    risk_score = float(
-        production_bundle.classification_model.predict_proba(features)[0, 1]
-    )
+    risk_score = float(production_bundle.classification_model.predict_proba(features)[0, 1])
     threshold = float(production_bundle.risk_threshold)
     classification = "elevated" if risk_score >= RISK_SCORE_CUTOFF else "normal"
     return {
@@ -103,7 +100,7 @@ def _write_summary(metrics: dict, path: Path, ticker: str) -> None:
     regression = metrics["models"]["regression"]
     classification = metrics["models"]["classification"]
     lines = [
-        f"# {ticker} Weekly Risk Monitor - Results Summary",
+        f"# {ticker} weekly risk monitor: results summary",
         "",
         "**Sole author:** Paritosh Dwivedi",
         "",
@@ -216,7 +213,7 @@ def run(*, refresh: bool = False) -> dict:
     metrics = {
         "project": "Weekly ETF Risk Monitor",
         "sole_author": "Paritosh Dwivedi",
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "generated_at_utc": datetime.now(UTC).isoformat(),
         "ticker": settings.ticker,
         "data": {
             "raw_file": str(raw_path.relative_to(settings.project_root)),
@@ -246,9 +243,7 @@ def run(*, refresh: bool = False) -> dict:
         "latest_risk_snapshot": _latest_risk_snapshot(feature_frame, production_bundle),
         "artifacts": {
             "predictions": str(prediction_path.relative_to(settings.project_root)),
-            "risk_threshold_sensitivity": str(
-                sensitivity_path.relative_to(settings.project_root)
-            ),
+            "risk_threshold_sensitivity": str(sensitivity_path.relative_to(settings.project_root)),
             "feature_window_sensitivity": str(
                 window_sensitivity_path.relative_to(settings.project_root)
             ),

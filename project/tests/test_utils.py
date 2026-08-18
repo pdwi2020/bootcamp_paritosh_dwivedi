@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -11,5 +11,5 @@ def test_clean_columns_normalizes_labels():
 
 
 def test_safe_timestamp_is_utc_and_filename_safe():
-    moment = datetime(2026, 8, 17, 14, 30, tzinfo=timezone.utc)
-    assert safe_timestamp(moment) == "20260817T143000Z"
+    moment = datetime(2026, 8, 17, 14, 30, tzinfo=UTC)
+    assert safe_timestamp(moment) == "20260817T143000000000Z"

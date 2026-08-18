@@ -23,9 +23,8 @@ def clean_market_data(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, Any]
     result["adjusted_close"] = result["adjusted_close"].fillna(result["close"])
     valid_prices = (result[["open", "high", "low", "close", "adjusted_close"]] > 0).all(axis=1)
     valid_volume = result["volume"] >= 0
-    internally_consistent = (
-        (result["high"] >= result[["open", "close", "low"]].max(axis=1))
-        & (result["low"] <= result[["open", "close", "high"]].min(axis=1))
+    internally_consistent = (result["high"] >= result[["open", "close", "low"]].max(axis=1)) & (
+        result["low"] <= result[["open", "close", "high"]].min(axis=1)
     )
     result = result.loc[valid_prices & valid_volume & internally_consistent]
     result = result.sort_values("date").drop_duplicates("date", keep="last").reset_index(drop=True)

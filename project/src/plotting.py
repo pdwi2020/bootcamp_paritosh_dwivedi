@@ -8,10 +8,8 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
-
 
 BLUE = "#2563EB"
 LIGHT_BLUE = "#60A5FA"
@@ -72,9 +70,7 @@ def plot_volatility_and_threshold(
     return _finish(fig, output_dir / "volatility_and_risk_threshold.png")
 
 
-def plot_regression_predictions(
-    predictions: pd.DataFrame, output_dir: Path, ticker: str
-) -> Path:
+def plot_regression_predictions(predictions: pd.DataFrame, output_dir: Path, ticker: str) -> Path:
     """Compare Ridge predictions with realized volatility and the recent-vol baseline."""
 
     recent = predictions.tail(504)

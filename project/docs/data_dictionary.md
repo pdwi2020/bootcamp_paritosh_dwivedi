@@ -1,4 +1,4 @@
-# Data Dictionary
+# Data dictionary
 
 **Sole author:** Paritosh Dwivedi
 

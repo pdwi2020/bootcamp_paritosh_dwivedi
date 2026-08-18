@@ -4,7 +4,6 @@ from pathlib import Path
 
 import nbformat as nbf
 
-
 ROOT = Path(__file__).resolve().parents[2]
 NOTEBOOKS = ROOT / "project/notebooks"
 
@@ -35,7 +34,7 @@ def save(name: str, cells: list, title: str) -> None:
 fundamentals = [
     markdown(
         """
-# Python Fundamentals for the Weekly ETF Risk Monitor
+# Python fundamentals for the Weekly ETF Risk Monitor
 
 **Sole author:** Paritosh Dwivedi
 
@@ -53,7 +52,7 @@ By the end, the reader can:
     ),
     markdown(
         """
-## Outline
+## Tutorial outline
 
 1. Reproducible setup
 2. Core Python structures and functions
@@ -67,18 +66,19 @@ By the end, the reader can:
     code(
         """
 # --- run me first ---
+import os
+import sys
 from pathlib import Path
-import os, sys
+
 if Path.cwd().name == 'notebooks':
     os.chdir('..')
 ROOT = Path.cwd()
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-
 from src.utils import clean_column_name
 
 np.random.seed(42)
@@ -236,7 +236,7 @@ The cumulative project notebook applies these foundations to the full SPY pipeli
 pipeline = [
     markdown(
         """
-# Weekly ETF Risk Monitor: End-to-End Project Pipeline
+# Weekly ETF Risk Monitor: end-to-end project pipeline
 
 **Sole author:** Paritosh Dwivedi
 
@@ -252,18 +252,18 @@ This notebook builds a reproducible SPY risk-monitoring pipeline for a portfolio
     code(
         """
 # --- run me first: makes this notebook work wherever it lives ---
+import os
+import sys
 from pathlib import Path
-import os, sys
+
 if Path.cwd().name == 'notebooks':
     os.chdir('..')
 ROOT = Path.cwd()
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import json
 import pandas as pd
 from IPython.display import Image, display
-
 from run_pipeline import run
 from src.config import get_settings
 
@@ -526,10 +526,10 @@ print(snapshot['decision_language'])
 save(
     "python_fundamentals_summary.ipynb",
     fundamentals,
-    "Python Fundamentals for the Weekly ETF Risk Monitor",
+    "Python fundamentals for the Weekly ETF Risk Monitor",
 )
 save(
     "project_pipeline.ipynb",
     pipeline,
-    "Weekly ETF Risk Monitor: End-to-End Project Pipeline",
+    "Weekly ETF Risk Monitor: end-to-end project pipeline",
 )

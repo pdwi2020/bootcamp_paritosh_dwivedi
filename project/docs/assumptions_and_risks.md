@@ -1,4 +1,4 @@
-# Assumptions and Risks
+# Assumptions and risks
 
 **Sole author:** Paritosh Dwivedi
 

@@ -1,3 +1,4 @@
+beautifulsoup4==4.15.0
 ipykernel==6.30.1
 joblib==1.5.1
 matplotlib==3.10.5
@@ -5,9 +6,11 @@ nbclient==0.10.2
 nbformat==5.10.4
 numpy==2.3.2
 pandas==2.3.1
-pyarrow==21.0.0
-pytest==8.4.1
-python-dotenv==1.1.1
-requests==2.32.4
+pyarrow==23.0.1
+pytest==9.0.3
+python-dotenv==1.2.2
+python-pptx==1.0.2
+requests==2.33.0
+ruff==0.16.3
 scikit-learn==1.7.1
 yfinance==0.2.65
