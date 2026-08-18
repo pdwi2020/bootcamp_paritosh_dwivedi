@@ -79,6 +79,7 @@ if str(ROOT) not in sys.path:
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
 from src.utils import clean_column_name
 
 np.random.seed(42)
@@ -264,6 +265,7 @@ if str(ROOT) not in sys.path:
 
 import pandas as pd
 from IPython.display import Image, display
+
 from run_pipeline import run
 from src.config import get_settings
 
