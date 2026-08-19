@@ -2,7 +2,7 @@
 
 **Owner and author:** Paritosh Dwivedi
 **Project:** Weekly ETF Risk Monitor
-**Status date:** August 18, 2026
+**Status date:** August 19, 2026
 
 ## Completed
 
@@ -91,6 +91,21 @@
 - [x] Replace the deleted Node deck generator with a tracked `python-pptx` module and CLI.
 - [x] Build the editable stakeholder deck from validated committed inputs through `make presentation`, with no Node runtime dependency.
 - [x] Add Python regression tests for date formatting, calendar spans, newest-row-preserving chart sampling, slide count, and core authorship metadata.
+
+## Course-requirement compliance pass
+
+- [x] Build the seven graded homework folders, stages 00 through 06, from the official starters, each using only the subfolders its stage allows.
+- [x] Execute every homework notebook with a real Jupyter kernel and commit the outputs.
+- [x] Record blank CIK cells from the live constituent table as missing data instead of failing ingestion.
+- [x] Restore the repository layout the course structure document specifies, moving the Makefile and packaging config into `project/`.
+- [x] Rewrite the repository README on the Stage 00 template and add the homework index.
+- [x] Add the goal column so `project/README.md` states the goals to lifecycle to deliverables mapping Stage 01 requires.
+- [x] Demonstrate the Stage 05 storage layer and Stage 06 cleaning functions directly in `notebooks/project_pipeline.ipynb`.
+- [x] Sort generated notebook imports so `make notebooks` leaves the Ruff gate passing.
+- [x] Name Paritosh Dwivedi as author throughout without the word "sole", renaming the `sole_author` metrics key and its readers.
+- [x] Remove the dependency-ignore rules and scratch output left by the deleted Node toolchain.
+- [x] Confirm every documented figure still matches `reports/metrics.json` after regenerating the pipeline.
+- [x] Re-verify the whole workflow from a fresh clone built only from `requirements.lock.txt`.
 
 ## Submission actions requiring Paritosh Dwivedi
 
