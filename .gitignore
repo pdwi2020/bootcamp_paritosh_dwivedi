@@ -8,7 +8,6 @@ project/.env
 # Python environments and caches.
 .venv/
 env/
-node_modules
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -26,4 +25,3 @@ htmlcov/
 # Temporary build files.
 tmp/
 *.tmp
-*.inspect.ndjson
