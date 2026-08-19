@@ -35,4 +35,4 @@ Run the notebook from this homework folder with the repository environment activ
 python -m jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=600 homework06_data-preprocessing_submission.ipynb
 ```
 
-Paritosh Dwivedi is the sole author and retains responsibility for understanding, validating, and presenting this work.
+Paritosh Dwivedi is the author and retains responsibility for understanding, validating, and presenting this work.

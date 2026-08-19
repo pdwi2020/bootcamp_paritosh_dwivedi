@@ -180,8 +180,8 @@ def build_presentation(project_root: Path) -> Path:
 def _load_inputs(project_root: Path) -> DeckInputs:
     metrics_path = project_root / "reports/metrics.json"
     metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
-    if metrics.get("sole_author") != AUTHOR:
-        raise ValueError(f"metrics.json must declare sole_author as {AUTHOR!r}")
+    if metrics.get("author") != AUTHOR:
+        raise ValueError(f"metrics.json must declare author as {AUTHOR!r}")
 
     raw_relative_path, raw_path = _resolve_declared_raw_file(
         project_root,
@@ -385,7 +385,7 @@ def _validate_decision_documents(metrics: dict[str, Any], documents: dict[str, s
         raise ValueError("final_summary.md does not match the latest decision language")
 
     rule = re.search(
-        r"Use score\s*>=\s*([0-9]+(?:\.[0-9]+)?)% as the sole elevated-risk trigger",
+        r"Use score\s*>=\s*([0-9]+(?:\.[0-9]+)?)% as the only elevated-risk trigger",
         documents["decision_log"],
     )
     if rule is None:
@@ -748,7 +748,7 @@ def _build_title_slide(slide: Slide, inputs: DeckInputs) -> str:
     )
     _add_text(
         slide,
-        f"{metrics['sole_author']} · Sole author\nData through {display_end_date}",
+        f"{metrics['author']} · Author\nData through {display_end_date}",
         52,
         544,
         480,
@@ -1368,7 +1368,7 @@ def _build_decision_slide(slide: Slide, inputs: DeckInputs) -> str:
     )
     _add_text(
         slide,
-        f"{inputs.metrics['sole_author']} · Sole author",
+        f"{inputs.metrics['author']} · Author",
         52,
         626,
         440,

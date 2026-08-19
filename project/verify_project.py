@@ -308,8 +308,8 @@ def main() -> None:
 
     metrics = json.loads((ROOT / "reports/metrics.json").read_text(encoding="utf-8"))
     declared_artifacts = _verify_declared_artifacts(metrics)
-    if metrics.get("sole_author") != "Paritosh Dwivedi":
-        raise SystemExit("Sole-author metadata is missing or incorrect")
+    if metrics.get("author") != "Paritosh Dwivedi":
+        raise SystemExit("Author metadata is missing or incorrect")
 
     data = pd.read_parquet(declared_artifacts["model_dataset_file"])
     if data.empty or data["date"].duplicated().any():
@@ -400,7 +400,7 @@ def main() -> None:
         json.dumps(
             {
                 "required_artifacts": "passed",
-                "sole_author": metrics["sole_author"],
+                "author": metrics["author"],
                 "processed_rows": int(len(data)),
                 "duplicate_dates": int(data["date"].duplicated().sum()),
                 "raw_manifest": "passed",

@@ -1,7 +1,7 @@
 # Applied Financial Engineering Project Plan
 
 **Working title:** Weekly ETF Risk Monitor  
-**Sole author and project owner:** Paritosh Dwivedi  
+**Author and project owner:** Paritosh Dwivedi  
 **Course:** FRE-GY 5040 - Foundations of Applied Financial Engineering  
 **Project window:** August 17-27, 2026  
 **Final exam:** August 28, 2026
@@ -74,7 +74,7 @@ The project is successful when:
 7. The final conclusion answers the stated weekly decision question.
 8. Assumptions, uncertainty, limitations, and possible failure modes are visible in both the notebook and presentation.
 9. No secret, credential, or local absolute path is committed.
-10. All submitted writing, code decisions, analysis, and presentation content remain attributable solely to Paritosh Dwivedi.
+10. All submitted writing, code decisions, analysis, and presentation content remain attributable to Paritosh Dwivedi.
 
 ## 5. Repository plan
 
@@ -195,7 +195,7 @@ All features must use information available before the prediction window. Any fe
 
 - Finalize ETF, stakeholder, decision frequency, target, and useful answer.
 - Write the project summary, persona, assumptions, constraints, risks, and lifecycle map in `project/README.md`.
-- Create the repository and preserve Paritosh Dwivedi as the sole author.
+- Create the repository and preserve Paritosh Dwivedi as the author.
 
 #### Tooling setup
 
@@ -257,7 +257,7 @@ All features must use information available before the prediction window. Any fe
 - Build the model type that best answers the project decision.
 - Compare it with the baseline and regression result where appropriate.
 - Record threshold selection and class-balance implications.
-- Avoid adding models solely to increase model count.
+- Avoid adding models only to increase model count.
 
 ### August 24 - Evaluation and risk communication
 
@@ -289,7 +289,7 @@ All features must use information available before the prediction window. Any fe
 
 ## 9. Final deliverables
 
-1. A structured GitHub repository authored solely by Paritosh Dwivedi.
+1. A structured GitHub repository authored by Paritosh Dwivedi.
 2. A clean cumulative `project_pipeline.ipynb` with markdown explanations.
 3. Reusable Python modules under `project/src/`.
 4. Versioned raw and reproducible processed data.
@@ -322,4 +322,4 @@ All features must use information available before the prediction window. Any fe
 
 ## 12. Definition of done
 
-The project is done only when a clean run can acquire or load the recorded raw input, recreate the processed dataset, regenerate the principal figures and metrics, and produce a conclusion that directly answers the weekly ETF risk decision. The repository and final presentation must clearly identify Paritosh Dwivedi as the sole author and must not attribute authorship to any other person, group, or tool.
+The project is done only when a clean run can acquire or load the recorded raw input, recreate the processed dataset, regenerate the principal figures and metrics, and produce a conclusion that directly answers the weekly ETF risk decision. The repository and final presentation must clearly identify Paritosh Dwivedi as the author and must not attribute authorship to any other person, group, or tool.

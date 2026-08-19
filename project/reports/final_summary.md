@@ -1,6 +1,6 @@
 # SPY weekly risk monitor: results summary
 
-**Sole author:** Paritosh Dwivedi
+**Author:** Paritosh Dwivedi
 
 **Data through:** 2026-08-17
 

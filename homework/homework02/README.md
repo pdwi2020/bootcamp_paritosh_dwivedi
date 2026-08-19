@@ -12,4 +12,4 @@ The seven folders have separate roles:
 - `reports/` holds reader-facing summaries, charts, and other deliverables.
 - `model/` holds saved model objects.
 
-Paritosh Dwivedi is the sole author and retains responsibility for understanding, validating, and presenting this work.
+Paritosh Dwivedi is the author and retains responsibility for understanding, validating, and presenting this work.

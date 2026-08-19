@@ -1,6 +1,6 @@
 # Decision log
 
-**Sole author:** Paritosh Dwivedi
+**Author:** Paritosh Dwivedi
 
 | Date | Decision | Rationale | Revisit trigger |
 |---|---|---|---|
@@ -13,6 +13,6 @@
 | 2026-08-17 | Embargo five sessions before each test window | The target uses the next five sessions, so a gap prevents training targets from containing test dates. | The forecast horizon changes. |
 | 2026-08-17 | Treat logistic output as a risk score | Class weighting improves minority detection but changes probability calibration. | A time-aware calibration study is added. |
 | 2026-08-17 | Separate evaluation and production fits | Holdout models support honest metrics; an all-labeled-history refit uses the latest available labels for current scoring. | The deployment protocol changes. |
-| 2026-08-17 | Use score >= 50% as the sole elevated-risk trigger | One explicit rule avoids conflicting forecast-threshold and classifier instructions. | The stakeholder selects a cost-based cutoff. |
+| 2026-08-17 | Use score >= 50% as the only elevated-risk trigger | One explicit rule avoids conflicting forecast-threshold and classifier instructions. | The stakeholder selects a cost-based cutoff. |
 | 2026-08-17 | Default refreshes to the current date | A blank `DATA_END` keeps weekly refreshes current while an explicit date preserves reproducible cutoffs. | The project adopts a scheduled data service. |
 | 2026-08-17 | Create raw snapshots with exclusive writes | Microsecond timestamps reduce collisions, and exclusive file creation prevents accidental replacement. | Snapshot storage moves to an object store with native versioning. |

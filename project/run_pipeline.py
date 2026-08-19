@@ -102,7 +102,7 @@ def _write_summary(metrics: dict, path: Path, ticker: str) -> None:
     lines = [
         f"# {ticker} weekly risk monitor: results summary",
         "",
-        "**Sole author:** Paritosh Dwivedi",
+        "**Author:** Paritosh Dwivedi",
         "",
         f"**Data through:** {snapshot['as_of_date']}",
         "",
@@ -212,7 +212,7 @@ def run(*, refresh: bool = False) -> dict:
     }
     metrics = {
         "project": "Weekly ETF Risk Monitor",
-        "sole_author": "Paritosh Dwivedi",
+        "author": "Paritosh Dwivedi",
         "generated_at_utc": datetime.now(UTC).isoformat(),
         "ticker": settings.ticker,
         "data": {

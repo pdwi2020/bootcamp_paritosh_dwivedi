@@ -13,4 +13,4 @@ The notebook loads `.env` with `python-dotenv` and reads `DATA_DIR_RAW` and `DAT
 
 Homework05 has no `src/` folder under the course repository structure. The storage utilities therefore remain in the submission notebook for this stage. In the cumulative Weekly ETF Risk Monitor, the same responsibility moves into `project/src/storage.py` so the pipeline can reuse it.
 
-Paritosh Dwivedi is the sole author and retains responsibility for understanding, validating, and presenting this work.
+Paritosh Dwivedi is the author and retains responsibility for understanding, validating, and presenting this work.

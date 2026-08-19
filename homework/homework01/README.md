@@ -61,4 +61,4 @@ Goal -> Stage -> Deliverable
 
 This Stage 01 homework folder intentionally contains only the submission notebook, this README, and `docs/stakeholder_memo.md`. It does not create data, source, report, model, or notebook subfolders because this stage only uses `docs/`. The notebook holds the scoping draft and verifies the submitted layout; the memo holds the stakeholder-facing context. Both are updated whenever the decision definition, five-session target, score interpretation, or trust conditions change.
 
-Paritosh Dwivedi is the sole author and retains responsibility for understanding, validating, and presenting this work.
+Paritosh Dwivedi is the author and retains responsibility for understanding, validating, and presenting this work.

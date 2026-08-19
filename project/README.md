@@ -1,6 +1,6 @@
 # Weekly ETF risk monitor
 
-**Sole author:** Paritosh Dwivedi
+**Author:** Paritosh Dwivedi
 **Primary ETF:** SPY
 **Decision cadence:** Weekly
 **Data through:** August 17, 2026
@@ -192,7 +192,7 @@ All features use contemporaneous or past information:
 
 The regression target is annualized realized volatility over the next five trading days. A target is constructed for each eligible day, so adjacent forecast windows overlap. Ridge regression is compared with recent-volatility and historical-mean baselines.
 
-The elevated-risk label equals one when the regression target exceeds the training-period volatility quantile. Logistic regression uses class weighting because elevated-risk periods are less frequent. A risk score of at least 50% is the sole classification trigger; the volatility forecast and training-derived target threshold provide context but do not independently change the classification. Threshold sensitivity is reported at the 70th, 75th, and 80th percentiles.
+The elevated-risk label equals one when the regression target exceeds the training-period volatility quantile. Logistic regression uses class weighting because elevated-risk periods are less frequent. A risk score of at least 50% is the only classification trigger; the volatility forecast and training-derived target threshold provide context but do not independently change the classification. Threshold sensitivity is reported at the 70th, 75th, and 80th percentiles.
 
 Holdout models are retained only for honest historical evaluation. The saved production bundle is a separate refit on all 4,175 labeled rows through August 10, 2026, and it is the model used for the current August 17 signal.
 
@@ -236,4 +236,4 @@ Goal -> lifecycle stage -> deliverable.
 
 ## Authorship
 
-Paritosh Dwivedi is the sole author, analyst, programmer, and presenter. Paritosh Dwivedi retains responsibility for understanding, validating, and presenting all submitted work.
+Paritosh Dwivedi is the author, analyst, programmer, and presenter. Paritosh Dwivedi retains responsibility for understanding, validating, and presenting all submitted work.

@@ -1,7 +1,7 @@
 {
   "project": "Weekly ETF Risk Monitor",
-  "sole_author": "Paritosh Dwivedi",
-  "generated_at_utc": "2026-08-19T00:53:14.230836+00:00",
+  "author": "Paritosh Dwivedi",
+  "generated_at_utc": "2026-08-19T01:01:47.081025+00:00",
   "ticker": "SPY",
   "data": {
     "raw_file": "data/raw/spy_daily_20260817T224143Z.csv",

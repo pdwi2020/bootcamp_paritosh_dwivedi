@@ -36,7 +36,7 @@ fundamentals = [
         """
 # Python fundamentals for the Weekly ETF Risk Monitor
 
-**Sole author:** Paritosh Dwivedi
+**Author:** Paritosh Dwivedi
 
 ## Audience, prerequisites, and learning goals
 
@@ -239,7 +239,7 @@ pipeline = [
         """
 # Weekly ETF Risk Monitor: end-to-end project pipeline
 
-**Sole author:** Paritosh Dwivedi
+**Author:** Paritosh Dwivedi
 
 ## Objective and stakeholder question
 
@@ -271,7 +271,7 @@ from src.config import get_settings
 
 settings = get_settings()
 print('working from:', ROOT.name)
-print('sole author: Paritosh Dwivedi')
+print('author: Paritosh Dwivedi')
 """
     ),
     markdown(

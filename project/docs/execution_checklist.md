@@ -1,6 +1,6 @@
 # Project execution checklist
 
-**Sole owner and author:** Paritosh Dwivedi
+**Owner and author:** Paritosh Dwivedi
 **Project:** Weekly ETF Risk Monitor
 **Status date:** August 18, 2026
 

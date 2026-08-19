@@ -1,6 +1,6 @@
 # Bootcamp Repository
 
-**Repository owner and sole author:** Paritosh Dwivedi
+**Repository owner and author:** Paritosh Dwivedi
 
 **Course:** FRE-GY 5040 Foundations of Applied Financial Engineering
 
@@ -44,4 +44,4 @@ The Weekly ETF Risk Monitor is a reproducible SPY pipeline that produces a next-
 
 ## Authorship
 
-Paritosh Dwivedi is the sole author, analyst, programmer, and presenter. Paritosh Dwivedi retains responsibility for understanding, validating, and presenting all submitted work.
+Paritosh Dwivedi is the author, analyst, programmer, and presenter. Paritosh Dwivedi retains responsibility for understanding, validating, and presenting all submitted work.

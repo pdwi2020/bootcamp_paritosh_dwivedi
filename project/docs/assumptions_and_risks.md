@@ -1,6 +1,6 @@
 # Assumptions and risks
 
-**Sole author:** Paritosh Dwivedi
+**Author:** Paritosh Dwivedi
 
 ## Assumptions
 

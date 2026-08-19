@@ -1,6 +1,6 @@
 # Data dictionary
 
-**Sole author:** Paritosh Dwivedi
+**Author:** Paritosh Dwivedi
 
 | Field | Meaning | Stage |
 |---|---|---|
