@@ -152,7 +152,7 @@ make presentation
 
 The target runs `build_presentation.py`, which delegates to `src/presentation.py` and writes `reports/stakeholder_presentation.pptx`. The build has no Node dependency; charts remain editable PowerPoint charts, and every reported result is read from the committed project data and reports.
 
-## Data acquisition and storage
+## Data acquisition and Data Storage
 
 The recorded raw dataset contains 4,180 daily SPY observations from January 4, 2010 through August 17, 2026. The successful refresh used yfinance. Each raw CSV is paired with a JSON manifest recording provider, symbol, requested dates, retrieval time, file size, limitations, and SHA-256 digest.
 
@@ -204,23 +204,25 @@ Mitigations include immutable snapshots with hash validation, purged chronologic
 
 ## Lifecycle mapping
 
-| Lifecycle stage | Project artifact |
-|---|---|
-| Problem Framing & Scoping | Stakeholder question, scope, assumptions, risks, README |
-| Tooling Setup | Isolated Python 3.11 environment, configuration, dependency pins, repository structure |
-| Python Fundamentals | Executed fundamentals notebook and reusable utilities |
-| Data Acquisition/Ingestion | Provider adapter, validation, timestamped raw CSV, manifest |
-| Data Storage | Raw/processed separation, CSV/Parquet IO, environment-driven paths |
-| Data Preprocessing | Copy-safe cleaning, validation, processed Parquet output |
-| Outlier Analysis | Robust flag, retained tails, policy and sensitivity rationale |
-| Exploratory Data Analysis | Saved price, drawdown, return, volatility, and prediction figures |
-| Feature Engineering | Leakage-aware lagged and rolling features |
-| Modeling | Recent-volatility baseline, Ridge regression, logistic classification |
-| Evaluation & Risk Communication | Chronological metrics, threshold sensitivity, confusion matrix, risk register |
-| Results Reporting & Delivery | Executed cumulative notebook, final summary, stakeholder presentation |
-| Productization | Saved model bundle and command-line pipeline |
-| Deployment & Monitoring | Conceptual refresh, schema-validation, and performance-monitoring hooks |
-| Orchestration & System Design | Modular stages controlled by one reproducible pipeline entry point |
+Goal -> lifecycle stage -> deliverable.
+
+| Goal | Lifecycle stage | Deliverable |
+|---|---|---|
+| Define one decision-centered question | Problem Framing & Scoping | Stakeholder question, scope, assumptions, risks, README |
+| Create a reproducible working environment | Tooling Setup | Isolated Python 3.11 environment, configuration, dependency pins, repository structure |
+| Build reusable code the later stages import | Python Fundamentals | Executed fundamentals notebook and reusable utilities |
+| Preserve auditable SPY history | Data Acquisition/Ingestion | Provider adapter, validation, timestamped raw CSV, manifest |
+| Let anyone recreate the data state without path edits | Data Storage | Raw/processed separation, CSV/Parquet IO, environment-driven paths |
+| Turn provider output into a trustworthy table | Data Preprocessing | Copy-safe cleaning, validation, processed Parquet output |
+| Decide what to do with market extremes | Outlier Analysis | Robust flag, retained tails, policy and sensitivity rationale |
+| Understand the risk behaviour before modeling | Exploratory Data Analysis | Saved price, drawdown, return, volatility, and prediction figures |
+| Construct information available at decision time | Feature Engineering | Leakage-aware lagged and rolling features |
+| Forecast weekly volatility and elevated risk | Modeling | Recent-volatility baseline, Ridge regression, logistic classification |
+| Test usefulness and failure modes | Evaluation & Risk Communication | Chronological metrics, threshold sensitivity, confusion matrix, risk register |
+| Support the weekly review | Results Reporting & Delivery | Executed cumulative notebook, final summary, stakeholder presentation |
+| Make the signal repeatable outside a notebook | Productization | Saved model bundle and command-line pipeline |
+| Keep the signal honest as data arrives | Deployment & Monitoring | Conceptual refresh, schema-validation, and performance-monitoring hooks |
+| Keep the stages independently runnable | Orchestration & System Design | Modular stages controlled by one reproducible pipeline entry point |
 
 ## Final artifacts
 
