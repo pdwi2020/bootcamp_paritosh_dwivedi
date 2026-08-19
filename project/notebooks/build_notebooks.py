@@ -335,7 +335,137 @@ print('processed rows:', len(processed))
 print('flagged retained return outliers:', metrics['data']['return_outliers_flagged'])
 """
     ),
-    markdown("## 3. Market and risk context"),
+    markdown(
+        """
+## 3. Storage layer round trip
+
+This section exercises `src/storage.py` directly so the Stage 05 storage work is visible rather than hidden inside the pipeline call. Directories come from `.env` through `get_settings()`, so no absolute path is written anywhere.
+"""
+    ),
+    code(
+        """
+from src.storage import read_dataframe, write_dataframe
+
+print('raw directory     :', settings.raw_dir.relative_to(ROOT))
+print('processed directory:', settings.processed_dir.relative_to(ROOT))
+
+storage_demo = processed[['date', 'adjusted_close', 'rolling_vol_20']].tail(5).reset_index(drop=True)
+# A categorical column makes the format contrast visible: Parquet stores the schema,
+# CSV stores only text and leaves pandas to guess on the way back in.
+storage_demo['risk_band'] = pd.Categorical(
+    ['normal', 'normal', 'elevated', 'normal', 'elevated'],
+    categories=['normal', 'elevated'],
+)
+demo_csv = write_dataframe(storage_demo, settings.processed_dir / 'storage_roundtrip_demo.csv')
+demo_parquet = write_dataframe(storage_demo, settings.processed_dir / 'storage_roundtrip_demo.parquet')
+print('wrote:', demo_csv.name, 'and', demo_parquet.name)
+"""
+    ),
+    code(
+        """
+from_csv = read_dataframe(demo_csv)
+from_parquet = read_dataframe(demo_parquet)
+
+print('shapes match original:', from_csv.shape == storage_demo.shape == from_parquet.shape)
+display(
+    pd.DataFrame(
+        {
+            'original': storage_demo.dtypes.astype(str),
+            'from_csv': from_csv.dtypes.astype(str),
+            'from_parquet': from_parquet.dtypes.astype(str),
+        }
+    )
+)
+"""
+    ),
+    markdown(
+        """
+Both formats reload to the same shape, but not to the same schema. Parquet stores the dtypes alongside the values, so `risk_band` returns as a category. CSV stores text, so the same column returns as a plain object and the ordered category is gone; the date survives only because `read_dataframe` parses that column by convention.
+
+That difference is the reason for the split: CSV stays the transparent, human-readable exchange format for `data/raw/`, and Parquet carries typed derived tables in `data/processed/` where dtype fidelity matters to the next stage.
+"""
+    ),
+    markdown(
+        """
+## 4. Preprocessing transformations
+
+This section applies `clean_market_data` from `src/cleaning.py` to the immutable raw snapshot and compares the table before and after. The raw file is only read; cleaning returns a new frame and never edits `data/raw/`.
+"""
+    ),
+    code(
+        """
+from src.cleaning import clean_market_data
+
+raw_frame = read_dataframe(ROOT / metrics['data']['raw_file'])
+cleaned_frame, cleaning_report = clean_market_data(raw_frame)
+
+comparison = pd.DataFrame(
+    {
+        'raw': [
+            len(raw_frame),
+            int(raw_frame.isna().sum().sum()),
+            int(raw_frame['date'].duplicated().sum()),
+        ],
+        'cleaned': [
+            len(cleaned_frame),
+            int(cleaned_frame.isna().sum().sum()),
+            int(cleaned_frame['date'].duplicated().sum()),
+        ],
+    },
+    index=['rows', 'missing values', 'duplicate dates'],
+)
+display(comparison)
+"""
+    ),
+    code(
+        """
+display(pd.Series(cleaning_report['policy'], name='cleaning policy').to_frame())
+print('rows removed:', cleaning_report['rows_removed'])
+print('date range after cleaning:', cleaning_report['date_start'], 'to', cleaning_report['date_end'])
+"""
+    ),
+    markdown(
+        """
+The recorded snapshot needs no repairs, which is the result a validated ingestion layer should produce. To show the transformations actually doing work, the cell below injects the four defect types the policy names into a throwaway copy. `data/raw/` is untouched.
+"""
+    ),
+    code(
+        """
+damaged = raw_frame.copy()
+damaged['date'] = damaged['date'].astype(object)                  # allow a bad date to be written
+damaged.loc[len(damaged)] = damaged.iloc[-1]                      # duplicate date
+damaged.iloc[0, damaged.columns.get_loc('close')] = -5.0          # non-positive price
+damaged.iloc[1, damaged.columns.get_loc('volume')] = -100         # negative volume
+damaged.iloc[2, damaged.columns.get_loc('high')] = 0.01           # high below low
+damaged.iloc[3, damaged.columns.get_loc('date')] = 'not-a-date'   # unparseable date
+
+repaired, damage_report = clean_market_data(damaged)
+
+display(
+    pd.DataFrame(
+        {
+            'damaged': [len(damaged), int(damaged['date'].astype(str).duplicated().sum())],
+            'repaired': [len(repaired), int(repaired['date'].duplicated().sum())],
+        },
+        index=['rows', 'duplicate dates'],
+    )
+)
+print('rows removed by the cleaner:', damage_report['rows_removed'])
+"""
+    ),
+    markdown(
+        """
+The cleaner removes all five defective rows and leaves the rest untouched, returning a new frame each time. The original `raw_frame` still has its full row count, which is what "copy-safe" means in practice.
+"""
+    ),
+    markdown(
+        """
+**Assumptions made during cleaning.** Required fields must parse as dates and numbers, so unparseable rows are dropped rather than guessed. Non-positive prices, negative volume, and internally inconsistent OHLC rows are treated as provider errors, not market events. A duplicate date keeps the final provider record because later records reflect corrections. A missing adjusted close falls back to the close.
+
+Extreme returns are a different matter and are deliberately **not** removed here. They are flagged in `src/outliers.py` and retained, because a monitor built to detect elevated risk would understate exactly the periods it exists to catch if its largest moves were deleted.
+"""
+    ),
+    markdown("## 5. Market and risk context"),
     code(
         """
 display(Image(filename=str(ROOT / 'reports/images/price_and_drawdown.png'), width=900))
@@ -356,7 +486,7 @@ Plausible extremes are retained because tail events are central to risk decision
 display(Image(filename=str(ROOT / 'reports/images/return_distribution.png'), width=800))
 """
     ),
-    markdown("## 4. Chronological model evaluation"),
+    markdown("## 6. Chronological model evaluation"),
     code(
         """
 regression = metrics['models']['regression']
@@ -408,7 +538,7 @@ display(Image(filename=str(ROOT / 'reports/images/classification_confusion_matri
     ),
     markdown(
         """
-## 5. Robustness across non-overlapping windows and regimes
+## 7. Robustness across non-overlapping windows and regimes
 
 Adjacent daily five-session targets overlap. Each offset below samples every fifth holdout row, producing five non-overlapping sequences rather than calling all 835 observations independent weeks.
 """
@@ -437,7 +567,7 @@ display(pd.DataFrame(walk_forward['folds']).round(3))
 display(pd.Series(walk_forward['aggregate'], name='aggregate').to_frame())
 """
     ),
-    markdown("## 6. Residual, outlier, threshold, and feature-window sensitivity"),
+    markdown("## 8. Residual, outlier, threshold, and feature-window sensitivity"),
     code(
         """
 display(pd.Series(metrics['models']['diagnostics']['residuals'], name='value').to_frame().round(4))
@@ -469,7 +599,7 @@ display(pd.Series(metrics['feature_relationships'], name='correlation').to_frame
 Threshold and feature-window choices change precision, recall, and baseline improvement. Standardized volume is more related to absolute same-day return than to current rolling volatility; these are descriptive correlations, not causal claims.
 """
     ),
-    markdown("## 7. Current stakeholder signal"),
+    markdown("## 9. Current stakeholder signal"),
     code(
         """
 snapshot = metrics['latest_risk_snapshot']
@@ -493,7 +623,7 @@ The current signal uses the separate production refit on all 4,175 labeled obser
     ),
     markdown(
         """
-## 8. Assumptions, risks, and conclusion
+## 10. Assumptions, risks, and conclusion
 
 - The five-trading-day horizon approximates a weekly review cycle.
 - Provider data and adjusted prices may be revised after retrieval.
