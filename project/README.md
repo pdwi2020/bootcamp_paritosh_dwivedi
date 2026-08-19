@@ -234,6 +234,4 @@ Goal -> lifecycle stage -> deliverable.
 - `reports/images/`
 - `model/risk_models.joblib`
 
-## Authorship
 
-Paritosh Dwivedi is the author, analyst, programmer, and presenter. Paritosh Dwivedi retains responsibility for understanding, validating, and presenting all submitted work.

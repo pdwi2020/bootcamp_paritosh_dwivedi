@@ -42,6 +42,4 @@ The Weekly ETF Risk Monitor is a reproducible SPY pipeline that produces a next-
 | [`homework05/`](homework/homework05/) | 05 data storage | Compares CSV and Parquet storage with environment-driven paths, reload validation, and reusable I/O helpers. |
 | [`homework06/`](homework/homework06/) | 06 data preprocessing | Loads, cleans, and saves a sample dataset while separating raw and processed data. |
 
-## Authorship
 
-Paritosh Dwivedi is the author, analyst, programmer, and presenter. Paritosh Dwivedi retains responsibility for understanding, validating, and presenting all submitted work.
