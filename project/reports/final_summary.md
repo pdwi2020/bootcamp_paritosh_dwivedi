@@ -2,25 +2,25 @@
 
 **Author:** Paritosh Dwivedi
 
-**Data through:** 2026-08-17
+**Data through:** 2026-08-21
 
 ## Current decision signal
 
 - Risk classification: **NORMAL**
-- Predicted next-five-session annualized volatility: **11.3%**
-- Elevated-risk score: **25.2%**
+- Predicted next-five-session annualized volatility: **13.2%**
+- Elevated-risk score: **35.3%**
 - Elevated-risk decision rule: score >= **50%**
 - All-labeled-history risk threshold: **17.1%**
 - Decision interpretation: The model does not flag elevated risk; maintain exposure only within the existing mandate.
 
 ## Out-of-sample evidence
 
-- Ridge MAE: 0.0402
+- Ridge MAE: 0.0400
 - Recent-volatility baseline MAE: 0.0507
-- Ridge MAE improvement versus recent-volatility baseline: 20.8%
-- Elevated-risk balanced accuracy: 72.7%
-- Elevated-risk recall: 61.3%
-- Holdout forecast windows: 835 overlapping daily five-session windows
+- Ridge MAE improvement versus recent-volatility baseline: 21.1%
+- Elevated-risk balanced accuracy: 72.4%
+- Elevated-risk recall: 60.4%
+- Holdout forecast windows: 836 overlapping daily five-session windows
 
 ## Interpretation limits
 

@@ -465,7 +465,130 @@ The cleaner removes all five defective rows and leaves the rest untouched, retur
 Extreme returns are a different matter and are deliberately **not** removed here. They are flagged in `src/outliers.py` and retained, because a monitor built to detect elevated risk would understate exactly the periods it exists to catch if its largest moves were deleted.
 """
     ),
-    markdown("## 5. Market and risk context"),
+    markdown(
+        """
+## 5. Outlier analysis
+
+Stage 07 work, run directly from `src/outliers.py`. The parameters are fit on the purged training
+window only, then applied to later rows, so the evaluation period never influences its own flag.
+"""
+    ),
+    code(
+        """
+from src.outliers import add_return_outlier_flag, fit_return_outlier_parameters
+
+train_returns = processed.loc[: metrics['models']['train_rows'] - 1, 'log_return']
+outlier_params = fit_return_outlier_parameters(train_returns)
+flagged = add_return_outlier_flag(processed, parameters=outlier_params)
+
+print('fitted on training rows only:', len(train_returns))
+print(f"median {outlier_params.median:.6f} | MAD {outlier_params.mad:.6f}"
+      f" | threshold {outlier_params.threshold:.1f}")
+print('flagged observations:', int(flagged['return_outlier_flag'].sum()))
+"""
+    ),
+    code(
+        """
+kept = flagged.loc[flagged['return_outlier_flag'] == 0, 'daily_return']
+dropped = flagged.loc[flagged['return_outlier_flag'] == 1, 'daily_return']
+display(
+    pd.DataFrame(
+        {
+            'all observations': flagged['daily_return'].describe(),
+            'excluding flagged': kept.describe(),
+        }
+    ).round(4)
+)
+print(f"largest flagged move: {dropped.abs().max() * 100:.2f}%")
+"""
+    ),
+    markdown(
+        """
+Excluding the flagged days barely moves the centre but visibly shrinks the tails, which is the point:
+those days carry most of the risk information. They are flagged and kept, never dropped. The policy
+and the risks of getting the threshold wrong are written up in `docs/outliers.md`.
+"""
+    ),
+    markdown(
+        """
+## 6. Exploratory data analysis
+
+Stage 08 work, run from `src/eda.py`. `eda_summary` profiles the frame without modifying it and
+names the columns that should be resolved before feature engineering.
+"""
+    ),
+    code(
+        """
+from src.eda import eda_summary
+
+eda = eda_summary(processed)
+print('shape:', eda['shape'])
+print('columns with missing values:', {k: v for k, v in eda['missing'].items() if v})
+display(
+    eda['numeric_profile']
+    .loc[
+        ['daily_return', 'rolling_vol_5', 'rolling_vol_20', 'drawdown', 'target_next_week_vol'],
+        ['mean', 'std', 'min', 'max', 'skew', 'kurtosis'],
+    ]
+    .round(4)
+)
+"""
+    ),
+    code(
+        """
+display(pd.Series(eda['attention'], name='columns').to_frame())
+"""
+    ),
+    markdown(
+        """
+Daily returns are mildly left skewed with kurtosis far above the normal value of zero, which is the
+statistical statement of fat tails and the reason the outlier policy exists. Realized volatility is
+strongly right skewed: most weeks are calm and a few are not, so the mean overstates the typical
+week. The flagged columns are constants that record the run configuration, not measurements, so they
+are correctly excluded from the feature set.
+"""
+    ),
+    markdown(
+        """
+## 7. Feature engineering
+
+Stage 09 work, run from `src/features.py`. Every feature uses contemporaneous or past information
+only, so nothing here can see the forecast window it is trying to predict.
+"""
+    ),
+    code(
+        """
+from src.features import build_features
+
+# The pipeline builds features first, then attaches the outlier flag, so mirror
+# that order here or the flag is missing from the model's feature list.
+engineered = add_return_outlier_flag(build_features(cleaned_frame), parameters=outlier_params)
+feature_columns = metrics['models']['feature_columns']
+print('engineered rows:', len(engineered))
+print('features used by the model:', len(feature_columns))
+display(engineered[feature_columns].tail(3).round(4))
+"""
+    ),
+    code(
+        """
+correlations = (
+    engineered[feature_columns + ['target_next_week_vol']]
+    .corr()['target_next_week_vol']
+    .drop('target_next_week_vol')
+    .sort_values(ascending=False)
+)
+display(correlations.round(3).to_frame('correlation with next-week volatility'))
+"""
+    ),
+    markdown(
+        """
+The trailing volatility measures correlate most strongly with next-week realized volatility, which is
+what makes the recent-volatility baseline hard to beat. Drawdown and standardized volume add a
+different kind of information: they rise in stressed markets that trailing volatility has not caught
+up with yet. Feature definitions and the reasoning behind each one are tabulated in `README.md`.
+"""
+    ),
+    markdown("## 8. Market and risk context"),
     code(
         """
 display(Image(filename=str(ROOT / 'reports/images/price_and_drawdown.png'), width=900))
@@ -486,7 +609,7 @@ Plausible extremes are retained because tail events are central to risk decision
 display(Image(filename=str(ROOT / 'reports/images/return_distribution.png'), width=800))
 """
     ),
-    markdown("## 6. Chronological model evaluation"),
+    markdown("## 9. Chronological model evaluation"),
     code(
         """
 regression = metrics['models']['regression']
@@ -538,7 +661,7 @@ display(Image(filename=str(ROOT / 'reports/images/classification_confusion_matri
     ),
     markdown(
         """
-## 7. Robustness across non-overlapping windows and regimes
+## 10. Robustness across non-overlapping windows and regimes
 
 Adjacent daily five-session targets overlap. Each offset below samples every fifth holdout row, producing five non-overlapping sequences rather than calling all 835 observations independent weeks.
 """
@@ -567,7 +690,7 @@ display(pd.DataFrame(walk_forward['folds']).round(3))
 display(pd.Series(walk_forward['aggregate'], name='aggregate').to_frame())
 """
     ),
-    markdown("## 8. Residual, outlier, threshold, and feature-window sensitivity"),
+    markdown("## 11. Residual, outlier, threshold, and feature-window sensitivity"),
     code(
         """
 display(pd.Series(metrics['models']['diagnostics']['residuals'], name='value').to_frame().round(4))
@@ -599,7 +722,7 @@ display(pd.Series(metrics['feature_relationships'], name='correlation').to_frame
 Threshold and feature-window choices change precision, recall, and baseline improvement. Standardized volume is more related to absolute same-day return than to current rolling volatility; these are descriptive correlations, not causal claims.
 """
     ),
-    markdown("## 9. Current stakeholder signal"),
+    markdown("## 12. Current stakeholder signal"),
     code(
         """
 snapshot = metrics['latest_risk_snapshot']
@@ -623,7 +746,7 @@ The current signal uses the separate production refit on all 4,175 labeled obser
     ),
     markdown(
         """
-## 10. Assumptions, risks, and conclusion
+## 13. Assumptions, risks, and conclusion
 
 - The five-trading-day horizon approximates a weekly review cycle.
 - Provider data and adjusted prices may be revised after retrieval.
