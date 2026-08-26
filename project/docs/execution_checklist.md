@@ -20,7 +20,7 @@
 - [x] Create and execute the Python fundamentals notebook from top to bottom.
 - [x] Create and execute the cumulative project notebook from top to bottom.
 - [x] Create and visually verify the editable stakeholder presentation.
-- [x] Complete the README, data dictionary, decision log, assumptions/risk register.
+- [x] Complete the README, data dictionary, decision log, and assumptions/risk register.
 - [x] Run unit tests, artifact checks, duplicate-date checks, secret scan, notebook error audit, and slide overflow test.
 - [x] Confirm Paritosh Dwivedi is the only named author and presenter.
 
