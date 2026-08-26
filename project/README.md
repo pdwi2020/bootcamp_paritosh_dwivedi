@@ -3,7 +3,7 @@
 **Author:** Paritosh Dwivedi
 **Primary ETF:** SPY
 **Decision cadence:** Weekly
-**Data through:** August 21, 2026
+**Data through:** August 25, 2026
 
 ## Project summary
 
@@ -23,41 +23,41 @@ The stakeholder and user is a portfolio manager who reviews ETF exposure weekly.
 
 ## Current result
 
-Using data through August 21, 2026, the model produces a **NORMAL** relative-risk classification:
+Using data through August 25, 2026, the model produces a **NORMAL** relative-risk classification:
 
-- Predicted next-five-session annualized volatility: **13.2%**
-- Elevated-risk score: **35.3%**
+- Predicted next-five-session annualized volatility: **11.3%**
+- Elevated-risk score: **25.1%**
 - Elevated-risk decision rule: **score >= 50%**
 - All-labeled-history elevated-risk threshold: **17.1%**
-- Current 20-day annualized volatility: **13.1%**
+- Current 20-day annualized volatility: **13.3%**
 
 Decision interpretation: the model does not flag elevated risk. Maintain exposure only within the existing mandate and continue monitoring; a normal flag is not a claim that the position is safe.
 
 ## Out-of-sample evidence
 
-The split is chronological and purged: five observations are embargoed between the last training row and the holdout start so no training target contains a holdout date. The primary holdout contains 836 overlapping daily five-session forecast windows; five offset samples provide non-overlapping robustness checks.
+The split is chronological and purged: five observations are embargoed between the last training row and the holdout start so no training target contains a holdout date. The primary holdout contains 837 overlapping daily five-session forecast windows; five offset samples provide non-overlapping robustness checks.
 
 | Measure | Result |
 |---|---:|
-| Ridge regression MAE | 0.0400 |
-| Recent-volatility baseline MAE | 0.0507 |
-| Ridge MAE improvement vs recent-volatility baseline | 21.1% |
+| Ridge regression MAE | 0.0399 |
+| Recent-volatility baseline MAE | 0.0506 |
+| Ridge MAE improvement vs recent-volatility baseline | 21.2% |
 | Ridge regression R-squared | 0.338 |
 | Elevated-risk balanced accuracy | 72.4% |
 | Elevated-risk recall | 60.4% |
-| Elevated-risk ROC AUC | 0.778 |
+| Elevated-risk ROC AUC | 0.779 |
 
 The classifier sacrifices overall accuracy to identify more elevated-risk periods. The prior baseline obtains high raw accuracy by predicting the majority class but has zero elevated-risk recall, so balanced accuracy and recall are more useful decision metrics.
 
 ## Robustness and limits
 
-- Across the five non-overlapping offsets, Ridge improves MAE over recent volatility by 17.1% to 23.5%; balanced accuracy ranges from 68.7% to 76.2%, and recall from 52.4% to 68.2%.
+- Across the five non-overlapping offsets, Ridge improves MAE over recent volatility by 17.1% to 23.7%; balanced accuracy ranges from 68.7% to 76.2%, and recall from 52.4% to 68.2%.
 - Calendar-year recall varies from 33.3% in 2024 to 83.3% in 2025, confirming regime sensitivity.
-- Four expanding walk-forward folds with a five-session embargo produce 18.6% aggregate MAE improvement, 79.1% balanced accuracy, and 74.0% recall across 3,340 forecast windows.
+- Four expanding walk-forward folds with a five-session embargo produce 18.7% aggregate MAE improvement, 79.1% balanced accuracy, and 73.9% recall across 3,344 forecast windows.
 - Ridge underpredicts the highest realized-volatility decile by 8.5 percentage points on average; tail forecasts therefore require caution.
 - Alternative 10/30- and 10/60-session feature windows do not overturn the general result, but the longer specification reduces classification recall.
 - Removing the return-outlier flag changes results only slightly, so it is retained as contextual information rather than treated as a dominant signal.
-- The class-weighted logistic score has a 33.8% holdout mean versus a 13.3% event rate; its Brier score is 0.142. Treat it as a ranking/decision score, not a literal probability.
+- The class-weighted logistic score has a 33.7% holdout mean versus a 13.3% event rate; its Brier score is 0.142. Treat it as a ranking/decision score, not a literal probability.
 
 ## Repository structure
 
@@ -154,7 +154,7 @@ The target runs `build_presentation.py`, which delegates to `src/presentation.py
 
 ## Data acquisition and Data Storage
 
-The recorded raw dataset contains 4,184 daily SPY observations from January 4, 2010 through August 21, 2026. The successful refresh used yfinance. Each raw CSV is paired with a JSON manifest recording provider, symbol, requested dates, retrieval time, file size, limitations, and SHA-256 digest.
+The recorded raw dataset contains 4,186 daily SPY observations from January 4, 2010 through August 25, 2026. The successful refresh used yfinance. Each raw CSV is paired with a JSON manifest recording provider, symbol, requested dates, retrieval time, file size, limitations, and SHA-256 digest.
 
 - `data/raw/` contains direct provider output after schema normalization only. Files are never overwritten or manually repaired.
 - `data/processed/spy_clean.parquet` contains validated, typed observations.
@@ -206,7 +206,7 @@ The regression target is annualized realized volatility over the next five tradi
 
 The elevated-risk label equals one when the regression target exceeds the training-period volatility quantile. Logistic regression uses class weighting because elevated-risk periods are less frequent. A risk score of at least 50% is the only classification trigger; the volatility forecast and training-derived target threshold provide context but do not independently change the classification. Threshold sensitivity is reported at the 70th, 75th, and 80th percentiles.
 
-Holdout models are retained only for honest historical evaluation. The saved production bundle is a separate refit on all 4,179 labeled rows through August 14, 2026, and it is the model used for the current August 21 signal.
+Holdout models are retained only for honest historical evaluation. The saved production bundle is a separate refit on all 4,181 labeled rows through August 18, 2026, and it is the model used for the current August 25 signal.
 
 ## Assumptions and risks
 
