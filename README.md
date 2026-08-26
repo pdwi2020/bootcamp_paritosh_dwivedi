@@ -14,7 +14,7 @@ The Weekly ETF Risk Monitor is a reproducible SPY pipeline that produces a next-
 
 ## Homework folder rules
 
-- Keep each stage's homework in its own subfolder, numbered to match the stage and zero-padded where applicable, such as `homework00`, `homework01`, and `homework06`.
+- Keep each stage's homework in its own subfolder, numbered to match the stage and zero-padded where applicable, such as `homework00`, `homework01`, and `homework09`.
 - Each homework folder must contain only the files and subfolders that its stage uses.
 - Include every file required for grading, including data artifacts when the assignment requires them.
 
@@ -41,5 +41,8 @@ The Weekly ETF Risk Monitor is a reproducible SPY pipeline that produces a next-
 | [`homework04/`](homework/homework04/) | 04 data acquisition and ingestion | Acquires and validates SPY and S&P 500 constituent data and saves timestamped raw snapshots. |
 | [`homework05/`](homework/homework05/) | 05 data storage | Compares CSV and Parquet storage with environment-driven paths, reload validation, and reusable I/O helpers. |
 | [`homework06/`](homework/homework06/) | 06 data preprocessing | Loads, cleans, and saves a sample dataset while separating raw and processed data. |
+| [`homework07/`](homework/homework07/) | 07 outliers and risk assumptions | Implements IQR, z-score, and winsorizing treatments, validates them against known injected shocks, and compares their effect on real SPY returns. |
+| [`homework08/`](homework/homework08/) | 08 exploratory data analysis | Profiles SPY alongside the VIX through distributions, relationships, and a time-series read, with a reusable summary helper. |
+| [`homework09/`](homework/homework09/) | 09 feature engineering | Builds volatility-ratio, implied-minus-realised, and one-hot regime features, each tied to a Stage 08 finding and checked against the target. |
 
 
