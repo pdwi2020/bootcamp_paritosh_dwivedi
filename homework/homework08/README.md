@@ -1,5 +1,7 @@
 # Homework 08: exploratory data analysis
 
+**Author:** Paritosh Dwivedi
+
 This homework profiles SPY alongside the VIX and extracts the profiling logic into a module so the same summary can be run on any frame.
 
 ## Files
@@ -23,5 +25,3 @@ The time-series section reads the level explicitly for trend, seasonality, and l
 - The **course git repository structure** document lists homework08 in its per-week folder table as *"(notebook only)"*.
 
 I followed the homework sheet, since the module is a graded requirement there. The structure document asks students to report exactly this kind of inconsistency: *"If you see anything that seems inconsistent with this document, please let me know so I can correct it."* This note is that report, and the deviation is limited to `src/` alone.
-
-Paritosh Dwivedi is the author and retains responsibility for understanding, validating, and presenting this work.

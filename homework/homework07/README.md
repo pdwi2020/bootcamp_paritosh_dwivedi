@@ -1,5 +1,7 @@
 # Homework 07: outliers and risk assumptions
 
+**Author:** Paritosh Dwivedi
+
 This homework implements three outlier treatments, tests them against a dataset whose answer is known, and only then applies them to real market data where it is not.
 
 ## Files
@@ -21,5 +23,3 @@ Real returns invert the ranking. The classic z-score flags 1.33% of sessions aga
 On the synthetic set, deleting the IQR-flagged points drops R-squared from 0.96 to 0.57, because the fence removed four ordinary points along with the five shocks. On real returns the same operation flattens the slope, because the removed days carried the signal. Winsorizing sits between the two: it preserves every row and every date while damping the tails, which matters for a time series where deletion leaves gaps.
 
 The governing assumption is that a flagged point is worth examining rather than deleting automatically. The synthetic shocks were errors by construction; the real SPY tails are recognisable market events. A market event is kept, a data error is removed.
-
-Paritosh Dwivedi is the author and retains responsibility for understanding, validating, and presenting this work.

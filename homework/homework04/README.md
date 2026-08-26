@@ -1,5 +1,7 @@
 # Homework 04: data acquisition and ingestion
 
+**Author:** Paritosh Dwivedi
+
 This homework acquires data through two different paths and records enough metadata that either pull can be audited later.
 
 ## Files
@@ -19,5 +21,3 @@ Each pull is checked for the expected columns, a non-empty result, and sensible 
 Yahoo Finance is a third-party source that can revise adjusted prices after corporate actions or change its schema without notice. The Wikipedia table is community-maintained, so its structure can change and its contents are not authoritative for index membership. Both risks are handled the same way: keep the dated raw snapshot, record how it was obtained, and validate on load rather than trusting the source.
 
 Homework04 uses only `data/raw/` under the course repository structure. Nothing is cleaned or derived at this stage, so there is no `data/processed/`.
-
-Paritosh Dwivedi is the author and retains responsibility for understanding, validating, and presenting this work.

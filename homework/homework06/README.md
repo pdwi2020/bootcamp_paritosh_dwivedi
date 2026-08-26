@@ -1,5 +1,7 @@
 # Stage 06 data preprocessing
 
+**Author:** Paritosh Dwivedi
+
 This homework turns the Stage 06 fill, drop, and scale operations into reusable, copy-safe functions. The sample analysis also mirrors one design principle from the Weekly ETF Risk Monitor: preserve raw inputs, write derived data separately, and make every cleaning decision explicit before using the result in a model.
 
 ## Files
@@ -34,5 +36,3 @@ Run the notebook from this homework folder with the repository environment activ
 ```bash
 python -m jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=600 homework06_data-preprocessing_submission.ipynb
 ```
-
-Paritosh Dwivedi is the author and retains responsibility for understanding, validating, and presenting this work.

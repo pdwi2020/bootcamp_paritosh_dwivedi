@@ -1,5 +1,7 @@
 # Homework 03: Python fundamentals
 
+**Author:** Paritosh Dwivedi
+
 This homework covers the NumPy and pandas operations the rest of the course depends on, then extracts the reusable parts into a module so the notebook is not the only place the logic lives.
 
 ## Files
@@ -16,5 +18,3 @@ The notebook times the same computation written as a Python loop and as a NumPy 
 ## Connection to the project
 
 `clean_column_names` is the direct ancestor of the header handling in `project/src/cleaning.py`, and the separation of raw inputs from derived outputs is the convention the project keeps throughout.
-
-Paritosh Dwivedi is the author and retains responsibility for understanding, validating, and presenting this work.

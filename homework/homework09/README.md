@@ -1,5 +1,7 @@
 # Homework 09: feature engineering
 
+**Author:** Paritosh Dwivedi
+
 This homework builds three features on the SPY and VIX data explored in Stage 08, so each one answers a question the EDA actually raised rather than being invented in isolation.
 
 ## Files
@@ -18,5 +20,3 @@ This homework builds three features on the SPY and VIX data explored in Stage 08
 Each feature is checked by correlation against the forward volatility target, with a sentence on what the number does and does not establish. Correlation here is a sanity check that the feature moves with the thing being predicted, not evidence of predictive power on unseen data.
 
 Homework09 uses only `src/` under the course repository structure. The notebook acquires its data in memory rather than writing a snapshot, so there are no data folders.
-
-Paritosh Dwivedi is the author and retains responsibility for understanding, validating, and presenting this work.
