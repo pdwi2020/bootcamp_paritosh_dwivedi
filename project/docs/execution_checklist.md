@@ -102,7 +102,7 @@
 - [x] Add the goal column so `project/README.md` states the goals to lifecycle to deliverables mapping Stage 01 requires.
 - [x] Demonstrate the Stage 05 storage layer and Stage 06 cleaning functions directly in `notebooks/project_pipeline.ipynb`.
 - [x] Sort generated notebook imports so `make notebooks` leaves the Ruff gate passing.
-- [x] Name Paritosh Dwivedi as author throughout without the word "sole", renaming the `sole_author` metrics key and its readers.
+- [x] Name Paritosh Dwivedi as the author throughout, renaming the single-author metrics key and updating both of its readers.
 - [x] Remove the dependency-ignore rules and scratch output left by the deleted Node toolchain.
 - [x] Confirm every documented figure still matches `reports/metrics.json` after regenerating the pipeline.
 - [x] Re-verify the whole workflow from a fresh clone built only from `requirements.lock.txt`.
