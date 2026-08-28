@@ -17,6 +17,7 @@ Endpoints
 ``GET  /health``    liveness plus which model is loaded
 ``GET  /schema``    the feature contract a caller must satisfy
 ``POST /predict``   score one observation; JSON body of feature name to number
+``GET  /plot``      the volatility-and-threshold chart as a PNG
 """
 
 from __future__ import annotations
@@ -24,8 +25,9 @@ from __future__ import annotations
 import logging
 import os
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 
+from src.config import get_settings
 from src.serving import load_model, model_path, predict_one
 
 logging.basicConfig(
@@ -91,6 +93,18 @@ def predict():
         result["elevated_risk_score"],
     )
     return jsonify(result)
+
+
+@app.get("/plot")
+def plot():
+    """Return the volatility-and-threshold chart as an image."""
+
+    figure = get_settings().images_dir / "volatility_and_risk_threshold.png"
+    if not figure.exists():
+        return jsonify(
+            {"error": f"{figure.name} not generated; run python run_pipeline.py first"}
+        ), 404
+    return send_file(figure, mimetype="image/png")
 
 
 if __name__ == "__main__":

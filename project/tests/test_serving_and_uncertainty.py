@@ -177,3 +177,79 @@ def test_empirical_and_gaussian_intervals_differ_on_skewed_residuals():
     # The gaussian form cannot represent the long right tail, so its upper bound
     # sits below the empirical one. This is the Stage 11 scenario comparison.
     assert gaussian["upper_offset"] < empirical["upper_offset"]
+
+
+# --- Stage 11 figure and Stage 13 API -----------------------------------
+
+
+def test_plot_uncertainty_writes_a_labelled_two_panel_figure(tmp_path):
+    import matplotlib.pyplot as plt
+
+    from src.plotting import plot_uncertainty
+
+    predictions = pd.DataFrame(
+        {
+            "actual_next_five_day_vol": np.linspace(0.10, 0.30, 60),
+            "ridge_predicted_vol": np.linspace(0.11, 0.28, 60),
+        }
+    )
+    uncertainty = {
+        "ridge_mae_bootstrap_ci": {"point_estimate": 0.04, "ci_low": 0.037, "ci_high": 0.044},
+        "baseline_mae_bootstrap_ci": {"point_estimate": 0.05, "ci_low": 0.046, "ci_high": 0.056},
+        "prediction_interval_scenarios": {
+            "empirical_residual_percentiles": {"lower_offset": -0.09, "upper_offset": 0.14},
+            "gaussian_approximation": {"lower_offset": -0.13, "upper_offset": 0.13},
+        },
+    }
+    path = plot_uncertainty(predictions, uncertainty, tmp_path)
+    assert path.exists() and path.stat().st_size > 5_000
+    plt.close("all")
+
+
+def test_create_all_figures_omits_uncertainty_panel_when_not_supplied(tmp_path):
+    """The uncertainty argument is optional, so older callers keep working."""
+
+    import inspect
+
+    from src.plotting import create_all_figures
+
+    signature = inspect.signature(create_all_figures)
+    assert signature.parameters["uncertainty"].default is None
+
+
+def test_api_predict_matches_the_serving_function():
+    """The HTTP layer must not change the answer the serving function gives."""
+
+    import app as api_module
+
+    bundle = api_module.load_model()
+    if bundle is None:  # pipeline has not been run in this environment
+        pytest.skip("no model/model.pkl available")
+
+    payload = {name: 0.01 for name in bundle.feature_columns}
+    direct = api_module.predict_one(payload, bundle)
+
+    client = api_module.app.test_client()
+    response = client.post("/predict", json=payload)
+    assert response.status_code == 200
+    served = response.get_json()
+    assert served["predicted_next_five_day_vol"] == pytest.approx(
+        direct["predicted_next_five_day_vol"]
+    )
+    assert served["elevated_risk_score"] == pytest.approx(direct["elevated_risk_score"])
+
+
+def test_api_rejects_bad_bodies_with_400():
+    import app as api_module
+
+    client = api_module.app.test_client()
+    assert client.post("/predict", json={"return_lag_1": 0.01}).status_code == 400
+    assert client.post("/predict", data="not json").status_code == 400
+
+
+def test_api_health_reports_model_state():
+    import app as api_module
+
+    body = api_module.app.test_client().get("/health").get_json()
+    assert body["status"] == "ok"
+    assert "model_loaded" in body
