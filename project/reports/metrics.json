@@ -1,7 +1,7 @@
 {
   "project": "Weekly ETF Risk Monitor",
   "author": "Paritosh Dwivedi",
-  "generated_at_utc": "2026-08-26T03:02:23.084486+00:00",
+  "generated_at_utc": "2026-08-28T09:10:30.111726+00:00",
   "ticker": "SPY",
   "data": {
     "raw_file": "data/raw/spy_daily_20260826T030031701985Z.csv",
@@ -389,6 +389,41 @@
       }
     ]
   },
+  "uncertainty": {
+    "ridge_mae_bootstrap_ci": {
+      "point_estimate": 0.03990764204608996,
+      "bootstrap_mean": 0.03992295711853097,
+      "ci_low": 0.03660995210475393,
+      "ci_high": 0.04362481824613541,
+      "confidence": 0.95,
+      "resamples": 2000
+    },
+    "baseline_mae_bootstrap_ci": {
+      "point_estimate": 0.05063987670794168,
+      "bootstrap_mean": 0.05063833028921246,
+      "ci_low": 0.04606657089593712,
+      "ci_high": 0.05554291872916099,
+      "confidence": 0.95,
+      "resamples": 2000
+    },
+    "prediction_interval_scenarios": {
+      "empirical_residual_percentiles": {
+        "lower_offset": -0.08991169697235313,
+        "upper_offset": 0.13529944035327734,
+        "confidence": 0.95,
+        "residual_std": 0.06560769947766619,
+        "method": "empirical residual percentiles"
+      },
+      "gaussian_approximation": {
+        "lower_offset": -0.12895001291288125,
+        "upper_offset": 0.12822744325662486,
+        "confidence": 0.95,
+        "residual_std": 0.06560769947766619,
+        "method": "gaussian approximation"
+      }
+    },
+    "note": "Bootstrap intervals quantify how precisely the metric is known; they do not show the model is correct. The two prediction-interval scenarios differ because residuals are right-skewed, so the gaussian form understates the upper tail."
+  },
   "feature_relationships": {
     "volume_z_20_vs_current_rolling_vol_20": -0.08170959130098501,
     "volume_z_20_vs_absolute_daily_return": 0.3581579912038162,
@@ -423,6 +458,7 @@
     "risk_threshold_sensitivity": "reports/risk_threshold_sensitivity.csv",
     "feature_window_sensitivity": "reports/feature_window_sensitivity.csv",
     "model": "model/risk_models.joblib",
+    "serving_model": "model/model.pkl",
     "figures": [
       "reports/images/price_and_drawdown.png",
       "reports/images/volatility_and_risk_threshold.png",

@@ -24,6 +24,7 @@ from src.modeling import (
 )
 from src.outliers import add_return_outlier_flag
 from src.plotting import create_all_figures
+from src.serving import save_model
 from src.storage import (
     build_manifest,
     read_dataframe,
@@ -31,6 +32,11 @@ from src.storage import (
     write_dataframe,
     write_immutable_csv,
     write_json,
+)
+from src.uncertainty import (
+    bootstrap_metric,
+    gaussian_interval,
+    prediction_interval,
 )
 from src.utils import safe_timestamp
 from src.validation import validate_market_data
@@ -190,6 +196,7 @@ def run(*, refresh: bool = False) -> dict:
         },
         model_path,
     )
+    serving_path = save_model(production_bundle, settings.model_dir)
 
     figure_paths = create_all_figures(
         feature_frame,
@@ -210,6 +217,32 @@ def run(*, refresh: bool = False) -> dict:
             feature_frame["volume_z_20"].corr(feature_frame["target_next_week_vol"])
         ),
     }
+    # Stage 11: uncertainty around the headline metric, and two interval scenarios.
+    holdout = model_bundle.predictions
+    residuals = holdout["actual_next_five_day_vol"] - holdout["ridge_predicted_vol"]
+    uncertainty = {
+        "ridge_mae_bootstrap_ci": bootstrap_metric(
+            holdout["actual_next_five_day_vol"],
+            holdout["ridge_predicted_vol"],
+            lambda a, b: float(np.mean(np.abs(a - b))),
+        ),
+        "baseline_mae_bootstrap_ci": bootstrap_metric(
+            holdout["actual_next_five_day_vol"],
+            holdout["recent_vol_baseline"],
+            lambda a, b: float(np.mean(np.abs(a - b))),
+        ),
+        "prediction_interval_scenarios": {
+            "empirical_residual_percentiles": prediction_interval(residuals),
+            "gaussian_approximation": gaussian_interval(residuals),
+        },
+        "note": (
+            "Bootstrap intervals quantify how precisely the metric is known; they do "
+            "not show the model is correct. The two prediction-interval scenarios "
+            "differ because residuals are right-skewed, so the gaussian form "
+            "understates the upper tail."
+        ),
+    }
+
     metrics = {
         "project": "Weekly ETF Risk Monitor",
         "author": "Paritosh Dwivedi",
@@ -239,6 +272,7 @@ def run(*, refresh: bool = False) -> dict:
             "risk_threshold": sensitivity,
             "feature_windows": window_sensitivity,
         },
+        "uncertainty": uncertainty,
         "feature_relationships": volume_relationships,
         "latest_risk_snapshot": _latest_risk_snapshot(feature_frame, production_bundle),
         "artifacts": {
@@ -248,6 +282,7 @@ def run(*, refresh: bool = False) -> dict:
                 window_sensitivity_path.relative_to(settings.project_root)
             ),
             "model": str(model_path.relative_to(settings.project_root)),
+            "serving_model": str(serving_path.relative_to(settings.project_root)),
             "figures": [str(path.relative_to(settings.project_root)) for path in figure_paths],
         },
     }

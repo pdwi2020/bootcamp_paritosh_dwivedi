@@ -722,7 +722,53 @@ display(pd.Series(metrics['feature_relationships'], name='correlation').to_frame
 Threshold and feature-window choices change precision, recall, and baseline improvement. Standardized volume is more related to absolute same-day return than to current rolling volatility; these are descriptive correlations, not causal claims.
 """
     ),
-    markdown("## 12. Current stakeholder signal"),
+    markdown("## 12. Uncertainty: how precisely do we know the score?"),
+    code(
+        """
+uncertainty = metrics['uncertainty']
+ridge_ci = uncertainty['ridge_mae_bootstrap_ci']
+base_ci = uncertainty['baseline_mae_bootstrap_ci']
+ci_table = pd.DataFrame(
+    [
+        {
+            'model': 'Ridge',
+            'MAE': ridge_ci['point_estimate'],
+            'ci_low': ridge_ci['ci_low'],
+            'ci_high': ridge_ci['ci_high'],
+        },
+        {
+            'model': 'Recent-volatility baseline',
+            'MAE': base_ci['point_estimate'],
+            'ci_low': base_ci['ci_low'],
+            'ci_high': base_ci['ci_high'],
+        },
+    ]
+)
+display(ci_table.round(4))
+print(
+    'intervals overlap:',
+    not (ridge_ci['ci_high'] < base_ci['ci_low'] or base_ci['ci_high'] < ridge_ci['ci_low']),
+)
+"""
+    ),
+    code(
+        """
+scenarios = uncertainty['prediction_interval_scenarios']
+display(pd.DataFrame(scenarios).T[['lower_offset', 'upper_offset', 'residual_std', 'method']].round(4))
+"""
+    ),
+    markdown(
+        """
+The bootstrap intervals for Ridge and the baseline do not overlap, so the improvement is not an
+artifact of which rows landed in the holdout. It quantifies how precisely the metric is known; it
+does not establish that the model is correct.
+
+The two prediction-interval scenarios answer a different question -- where a *new* observation may
+land. They disagree because the residuals are right-skewed: the gaussian approximation is symmetric
+and understates the upper tail, which is exactly the direction that matters for a risk monitor.
+"""
+    ),
+    markdown("## 13. Current stakeholder signal"),
     code(
         """
 snapshot = metrics['latest_risk_snapshot']
@@ -746,7 +792,7 @@ The current signal uses the separate production refit on all 4,175 labeled obser
     ),
     markdown(
         """
-## 13. Assumptions, risks, and conclusion
+## 14. Assumptions, risks, and conclusion
 
 - The five-trading-day horizon approximates a weekly review cycle.
 - Provider data and adjusted prices may be revised after retrieval.
