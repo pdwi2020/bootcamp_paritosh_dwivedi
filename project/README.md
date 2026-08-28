@@ -68,6 +68,7 @@ project/
 |   `-- processed/            # reproducible clean and feature datasets
 |-- notebooks/
 |   |-- python_fundamentals_summary.ipynb
+|   |-- eda.ipynb
 |   `-- project_pipeline.ipynb
 |-- src/
 |   |-- config.py
@@ -79,7 +80,11 @@ project/
 |   |-- outliers.py
 |   |-- features.py
 |   |-- modeling.py
+|   |-- eda.py
 |   |-- evaluation.py
+|   |-- uncertainty.py      # bootstrap CIs and prediction intervals
+|   |-- serving.py          # save/load model.pkl, shared predict function
+|   |-- run_step.py         # single-task CLI with logging and checkpoints
 |   |-- plotting.py
 |   `-- presentation.py
 |-- tests/
@@ -87,6 +92,9 @@ project/
 |-- reports/
 |   `-- images/
 |-- model/
+|   |-- risk_models.joblib  # rewritten by every pipeline run
+|   `-- model.pkl           # pinned serving artifact
+|-- app.py                  # Flask API over model.pkl
 |-- build_presentation.py
 |-- Makefile
 |-- pyproject.toml
@@ -216,25 +224,58 @@ Mitigations include immutable snapshots with hash validation, purged chronologic
 
 ## Lifecycle mapping
 
-Goal -> lifecycle stage -> deliverable.
+Each lifecycle stage, and the file or folder in this repository that holds it.
+`docs/lifecycle_framework_guide.md` adds the decision made at each stage.
 
-| Goal | Lifecycle stage | Deliverable |
-|---|---|---|
-| Define one decision-centered question | Problem Framing & Scoping | Stakeholder question, scope, assumptions, risks, README |
-| Create a reproducible working environment | Tooling Setup | Isolated Python 3.11 environment, configuration, dependency pins, repository structure |
-| Build reusable code the later stages import | Python Fundamentals | Executed fundamentals notebook and reusable utilities |
-| Preserve auditable SPY history | Data Acquisition/Ingestion | Provider adapter, validation, timestamped raw CSV, manifest |
-| Let anyone recreate the data state without path edits | Data Storage | Raw/processed separation, CSV/Parquet IO, environment-driven paths |
-| Turn provider output into a trustworthy table | Data Preprocessing | Copy-safe cleaning, validation, processed Parquet output |
-| Decide what to do with market extremes | Outlier Analysis | Robust flag, retained tails, policy and sensitivity rationale |
-| Understand the risk behaviour before modeling | Exploratory Data Analysis | Saved price, drawdown, return, volatility, and prediction figures |
-| Construct information available at decision time | Feature Engineering | Leakage-aware lagged and rolling features |
-| Forecast weekly volatility and elevated risk | Modeling | Recent-volatility baseline, Ridge regression, logistic classification |
-| Test usefulness and failure modes | Evaluation & Risk Communication | Chronological metrics, threshold sensitivity, confusion matrix, risk register |
-| Support the weekly review | Results Reporting & Delivery | Executed cumulative notebook, final summary, stakeholder presentation |
-| Make the signal repeatable outside a notebook | Productization | Saved model bundle and command-line pipeline |
-| Keep the signal honest as data arrives | Deployment & Monitoring | Conceptual refresh, schema-validation, and performance-monitoring hooks |
-| Keep the stages independently runnable | Orchestration & System Design | Modular stages controlled by one reproducible pipeline entry point |
+| Stage | Where the work lives |
+|---|---|
+| 01 Problem Framing & Scoping | `README.md`, `docs/project_plan.md` |
+| 02 Tooling Setup | `requirements.txt`, `requirements.lock.txt`, `.env.example`, `Makefile` |
+| 03 Python Fundamentals | `src/utils.py`, `notebooks/python_fundamentals_summary.ipynb` |
+| 04 Data Acquisition & Ingestion | `src/ingestion.py`, `src/validation.py`, `data/raw/` |
+| 05 Data Storage | `src/storage.py`, `data/raw/` and `data/processed/` |
+| 06 Data Preprocessing | `src/cleaning.py` |
+| 07 Outlier Analysis | `src/outliers.py`, `docs/outliers.md` |
+| 08 Exploratory Data Analysis | `src/eda.py`, `notebooks/eda.ipynb` |
+| 09 Feature Engineering | `src/features.py` |
+| 10a Modeling: Linear Regression | `src/modeling.py`, `docs/model_interpretation.md` |
+| 10b Modeling: Time Series & Classification | `src/modeling.py` (purged split, class-weighted logistic) |
+| 11 Evaluation & Risk Communication | `src/evaluation.py`, `src/uncertainty.py`, `docs/assumptions_and_risks.md` |
+| 12 Results Reporting & Delivery | `reports/final_summary.md`, `reports/stakeholder_presentation.pptx` |
+| 13 Productization | `src/serving.py`, `app.py`, `model/model.pkl` |
+| 14 Deployment & Monitoring | `docs/monitoring_plan.md`, `docs/handoff_plan.md` |
+| 15 Orchestration & System Design | `docs/orchestration_plan.md`, `src/run_step.py` |
+| 16 Lifecycle Review | `docs/lifecycle_framework_guide.md`, `docs/project_summary.md`, this README |
+
+## Serve the model
+
+The pipeline writes a pinned serving artifact at `model/model.pkl`. Start the API
+with:
+
+```bash
+cd project
+python app.py            # http://127.0.0.1:5001
+```
+
+`GET /health` reports which model is loaded, `GET /schema` returns the ten-feature
+contract, and `POST /predict` scores one observation. Bad input returns 400 with
+the offending field named; a missing model returns 503.
+
+macOS note: Control Center binds port 5000 and answers 403, so the default is
+5001. Override with `API_PORT`.
+
+## Run a single pipeline task
+
+```bash
+cd project
+python -m src.run_step --list
+python -m src.run_step clean
+python -m src.run_step features --force
+python -m src.run_step score
+```
+
+Each task skips its checkpoint unless `--force` is passed. `clean` and `features`
+are idempotent: a forced rebuild reproduces byte-identical Parquet files.
 
 ## Final artifacts
 
