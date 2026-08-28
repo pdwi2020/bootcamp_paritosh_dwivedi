@@ -790,9 +790,103 @@ pd.Series({
 The current signal uses the separate production refit on all 4,175 labeled observations. Holdout metrics above remain tied to the purged evaluation fit.
 """
     ),
+    markdown("## 14. Productization: refactor check and live API call"),
     markdown(
         """
-## 14. Assumptions, risks, and conclusion
+Stage 13 asks that the pipeline's steps move into reusable functions in `src/`, that they are
+imported back here, and that the imported version is *checked against the original* before it goes
+into the app. The original inline computation is kept above the imported one for exactly that reason.
+"""
+    ),
+    code(
+        """
+# --- original: score the latest row inline, straight from the pipeline artifact ---
+import joblib
+
+from src.features import FEATURE_COLUMNS
+
+model_dataset = read_dataframe(settings.processed_dir / 'spy_model_dataset.parquet')
+latest_row = model_dataset.dropna(subset=['date']).iloc[-1]
+inline_features = latest_row[FEATURE_COLUMNS].to_frame().T
+
+pipeline_artifact = joblib.load(settings.model_dir / 'risk_models.joblib')
+inline_vol = float(pipeline_artifact['regression_model'].predict(inline_features)[0])
+inline_score = float(pipeline_artifact['classification_model'].predict_proba(inline_features)[0, 1])
+print(f'inline    predicted_vol={inline_vol:.10f}  risk_score={inline_score:.10f}')
+"""
+    ),
+    code(
+        """
+# --- imported: the same computation through the reusable serving function ---
+from src.serving import load_model, predict_one
+
+serving_bundle = load_model()
+payload = {name: float(latest_row[name]) for name in FEATURE_COLUMNS}
+served = predict_one(payload, serving_bundle)
+print(f"imported  predicted_vol={served['predicted_next_five_day_vol']:.10f}  "
+      f"risk_score={served['elevated_risk_score']:.10f}")
+
+assert abs(served['predicted_next_five_day_vol'] - inline_vol) < 1e-9
+assert abs(served['elevated_risk_score'] - inline_score) < 1e-9
+print('refactor check PASSED - imported functions reproduce the inline cells exactly')
+"""
+    ),
+    markdown(
+        """
+### Calling the API from this notebook
+
+The Flask app is started on an ephemeral port in a background thread, called with `requests`, then
+shut down. The output below is the testing evidence Stage 13 asks to be left visible.
+"""
+    ),
+    code(
+        """
+import json
+import threading
+
+import requests
+from werkzeug.serving import make_server
+
+from app import app as flask_app
+
+server = make_server('127.0.0.1', 0, flask_app)   # port 0 -> OS picks a free one
+port = server.server_port
+thread = threading.Thread(target=server.serve_forever, daemon=True)
+thread.start()
+base = f'http://127.0.0.1:{port}'
+print('API started on', base)
+
+try:
+    health = requests.get(f'{base}/health', timeout=10).json()
+    print('GET /health ->', json.dumps(health, indent=2))
+
+    response = requests.post(f'{base}/predict', json=payload, timeout=10)
+    print(f'POST /predict -> HTTP {response.status_code}')
+    print(json.dumps(response.json(), indent=2))
+
+    bad = requests.post(f'{base}/predict', json={'return_lag_1': 0.01}, timeout=10)
+    print(f'POST /predict (incomplete body) -> HTTP {bad.status_code}')
+    print(json.dumps(bad.json(), indent=2))
+
+    chart = requests.get(f'{base}/plot', timeout=10)
+    print(f'GET /plot -> HTTP {chart.status_code}, {chart.headers["Content-Type"]}, '
+          f'{len(chart.content):,} bytes')
+finally:
+    server.shutdown()
+    thread.join(timeout=5)
+    print('API stopped')
+"""
+    ),
+    markdown(
+        """
+The API returns the same figures as the pipeline's own snapshot, an incomplete body is rejected with
+**400** and a message naming every missing feature, and `/plot` serves the chart as a PNG. The served
+answer and the analysed answer come from one function, so they cannot drift apart.
+"""
+    ),
+    markdown(
+        """
+## 15. Assumptions, risks, and conclusion
 
 - The five-trading-day horizon approximates a weekly review cycle.
 - Provider data and adjusted prices may be revised after retrieval.

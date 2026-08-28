@@ -122,6 +122,22 @@ The default `.env.example` uses SPY, a January 2010 start date, a 20% chronologi
 
 An Alpha Vantage key is optional. If `ALPHAVANTAGE_API_KEY` is empty and `DATA_PROVIDER=auto`, the pipeline uses the course-supported yfinance fallback.
 
+## From a fresh git pull
+
+```bash
+git clone https://github.com/pdwi2020/bootcamp_paritosh_dwivedi.git
+cd bootcamp_paritosh_dwivedi/project
+make setup                 # venv from requirements.lock.txt
+cp .env.example .env
+make pipeline              # regenerates metrics, figures, model artifacts
+make lint && make test && make verify
+python app.py              # optional: serve the model on :5001
+```
+
+`make pipeline` uses the newest cached raw snapshot. Add `--refresh` to
+`python run_pipeline.py` to acquire new data, or `--use-saved-model` to score the
+current signal with the saved `model/model.pkl` instead of refitting.
+
 ## Run the pipeline and quality gates
 
 From the repository root, enter `project/` once and use the latest validated immutable raw snapshot:
@@ -249,20 +265,79 @@ Each lifecycle stage, and the file or folder in this repository that holds it.
 
 ## Serve the model
 
-The pipeline writes a pinned serving artifact at `model/model.pkl`. Start the API
-with:
+The pipeline writes a pinned serving artifact at `model/model.pkl`. Start the API with:
 
 ```bash
 cd project
 python app.py            # http://127.0.0.1:5001
 ```
 
-`GET /health` reports which model is loaded, `GET /schema` returns the ten-feature
-contract, and `POST /predict` scores one observation. Bad input returns 400 with
-the offending field named; a missing model returns 503.
+macOS note: Control Center binds port 5000 and answers **403**, which reads as an
+application fault and is not. The default is 5001; override with `API_PORT`.
 
-macOS note: Control Center binds port 5000 and answers 403, so the default is
-5001. Override with `API_PORT`.
+### Example requests
+
+Every example below was executed against a running server; the responses are the
+actual output, not illustrations.
+
+**Liveness and which model is loaded**
+
+```bash
+curl -s http://127.0.0.1:5001/health
+```
+```json
+{"model_fit_end": "2026-08-18", "model_loaded": true,
+ "model_path": ".../project/model/model.pkl", "status": "ok"}
+```
+
+**The feature contract**
+
+```bash
+curl -s http://127.0.0.1:5001/schema
+```
+Returns the ten required features: `return_lag_1`, `return_lag_5`,
+`rolling_return_5`, `rolling_vol_5`, `rolling_vol_20`, `ewma_vol_20`, `vol_ratio`,
+`drawdown`, `volume_z_20`, `return_outlier_flag` — all numeric.
+
+**Score one observation**
+
+```bash
+curl -s -X POST http://127.0.0.1:5001/predict \
+  -H 'Content-Type: application/json' \
+  -d '{"return_lag_1": -0.002938, "return_lag_5": -0.006756,
+       "rolling_return_5": -0.002007, "rolling_vol_5": 0.083342,
+       "rolling_vol_20": 0.132538, "ewma_vol_20": 0.10489,
+       "vol_ratio": 0.628816, "drawdown": -0.015388,
+       "volume_z_20": -1.312424, "return_outlier_flag": 0.0}'
+```
+```json
+{"predicted_next_five_day_vol": 0.1125, "elevated_risk_score": 0.2507,
+ "risk_score_cutoff": 0.5, "risk_threshold_annualized_vol": 0.1714,
+ "risk_classification": "normal",
+ "score_interpretation": "Ranking and decision score, not a calibrated event probability."}
+```
+
+**Error handling.** An incomplete body returns **400** naming every missing field:
+
+```bash
+curl -s -X POST http://127.0.0.1:5001/predict \
+  -H 'Content-Type: application/json' -d '{"return_lag_1": 0.01}'
+```
+```json
+{"error": "missing required features: drawdown, ewma_vol_20, return_lag_5, ..."}
+```
+
+A non-numeric value returns 400 naming the field; a missing `model/model.pkl`
+returns **503**, not 500, so a monitor can tell "not ready" from "broken".
+
+**Chart as an image**
+
+```bash
+curl -s -o chart.png http://127.0.0.1:5001/plot     # HTTP 200, image/png, ~161 KB
+```
+
+`notebooks/project_pipeline.ipynb` section 14 calls these same endpoints with
+`requests` and leaves the output visible as testing evidence.
 
 ## Run a single pipeline task
 
@@ -276,6 +351,12 @@ python -m src.run_step score
 
 Each task skips its checkpoint unless `--force` is passed. `clean` and `features`
 are idempotent: a forced rebuild reproduces byte-identical Parquet files.
+
+## Stakeholder handoff
+
+`docs/stakeholder_handoff_summary.md` is the handoff document: purpose, key
+findings and recommendations, assumptions and limitations, risks, how to use each
+deliverable, and suggested next steps.
 
 ## Final artifacts
 
