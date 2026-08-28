@@ -149,6 +149,83 @@ def plot_confusion_matrix(predictions: pd.DataFrame, output_dir: Path) -> Path:
     return _finish(fig, output_dir / "classification_confusion_matrix.png")
 
 
+def plot_uncertainty(
+    predictions: pd.DataFrame,
+    uncertainty: dict,
+    output_dir: Path,
+) -> Path:
+    """Two-panel uncertainty figure: metric error bars, and interval scenarios.
+
+    Left panel answers "how precisely do we know the score" with 95% bootstrap
+    error bars. Right panel answers "where might a new observation land" and
+    contrasts the empirical and gaussian prediction intervals side by side, which
+    is the Stage 11 scenario comparison.
+    """
+
+    ridge = uncertainty["ridge_mae_bootstrap_ci"]
+    baseline = uncertainty["baseline_mae_bootstrap_ci"]
+    scenarios = uncertainty["prediction_interval_scenarios"]
+    empirical = scenarios["empirical_residual_percentiles"]
+    gaussian = scenarios["gaussian_approximation"]
+
+    fig, (left, right) = plt.subplots(1, 2, figsize=(12, 4.6))
+
+    # --- left: MAE with 95% bootstrap error bars -------------------------
+    labels = ["Ridge", "Recent-volatility\nbaseline"]
+    centres = [ridge["point_estimate"], baseline["point_estimate"]]
+    lower = [c - d["ci_low"] for c, d in zip(centres, (ridge, baseline), strict=True)]
+    upper = [d["ci_high"] - c for c, d in zip(centres, (ridge, baseline), strict=True)]
+    left.errorbar(
+        labels,
+        centres,
+        yerr=[lower, upper],
+        fmt="o",
+        color=BLUE,
+        ecolor=GRAY,
+        elinewidth=2,
+        capsize=8,
+        markersize=9,
+    )
+    for x, centre in enumerate(centres):
+        left.annotate(
+            f"{centre:.4f}",
+            (x, centre),
+            textcoords="offset points",
+            xytext=(12, 0),
+            color=BLACK,
+            fontsize=9,
+        )
+    left.set_title("Holdout MAE with 95% bootstrap interval", color=BLACK)
+    left.set_ylabel("Mean absolute error (annualised volatility)")
+    left.set_xlabel("Model")
+    left.grid(axis="y", alpha=0.3)
+
+    # --- right: residuals with both interval scenarios -------------------
+    residuals = predictions["actual_next_five_day_vol"] - predictions["ridge_predicted_vol"]
+    right.hist(residuals, bins=60, color=LIGHT_BLUE, edgecolor="white")
+    for bound, style, colour, name in (
+        (empirical["lower_offset"], "-", RED, "Empirical 95%"),
+        (empirical["upper_offset"], "-", RED, None),
+        (gaussian["lower_offset"], "--", BLACK, "Gaussian 95%"),
+        (gaussian["upper_offset"], "--", BLACK, None),
+    ):
+        right.axvline(bound, linestyle=style, color=colour, linewidth=1.6, label=name)
+    right.set_title("Residuals and two prediction-interval scenarios", color=BLACK)
+    right.set_xlabel("Actual minus predicted (annualised volatility)")
+    right.set_ylabel("Holdout forecast windows")
+    right.legend(frameon=False, fontsize=9)
+    right.grid(axis="y", alpha=0.3)
+
+    fig.suptitle(
+        "Uncertainty: the bootstrap intervals do not overlap, and the gaussian "
+        "scenario understates the upper tail",
+        fontsize=10,
+        color=GRAY,
+    )
+    fig.tight_layout()
+    return _finish(fig, output_dir / "uncertainty_intervals.png")
+
+
 def create_all_figures(
     feature_frame: pd.DataFrame,
     predictions: pd.DataFrame,
@@ -156,13 +233,17 @@ def create_all_figures(
     *,
     threshold: float,
     ticker: str,
+    uncertainty: dict | None = None,
 ) -> list[Path]:
     """Generate every final project figure."""
 
-    return [
+    figures = [
         plot_price_and_drawdown(feature_frame, output_dir, ticker),
         plot_volatility_and_threshold(feature_frame, output_dir, threshold, ticker),
         plot_regression_predictions(predictions, output_dir, ticker),
         plot_return_distribution(feature_frame, output_dir, ticker),
         plot_confusion_matrix(predictions, output_dir),
     ]
+    if uncertainty is not None:
+        figures.append(plot_uncertainty(predictions, uncertainty, output_dir))
+    return figures

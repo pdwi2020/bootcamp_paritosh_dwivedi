@@ -24,7 +24,7 @@ from src.modeling import (
 )
 from src.outliers import add_return_outlier_flag
 from src.plotting import create_all_figures
-from src.serving import save_model
+from src.serving import load_model, save_model
 from src.storage import (
     build_manifest,
     read_dataframe,
@@ -138,8 +138,14 @@ def _write_summary(metrics: dict, path: Path, ticker: str) -> None:
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def run(*, refresh: bool = False) -> dict:
-    """Execute acquisition through stakeholder artifacts and return metrics."""
+def run(*, refresh: bool = False, use_saved_model: bool = False) -> dict:
+    """Execute acquisition through stakeholder artifacts and return metrics.
+
+    With ``use_saved_model``, the current-signal snapshot is scored with the
+    saved ``model/model.pkl`` instead of the freshly refitted bundle, when that
+    artifact exists. Holdout evidence is always recomputed; only the scoring
+    path changes.
+    """
 
     settings = get_settings()
     raw_frame, acquisition_metadata, raw_path = _load_or_acquire(settings, refresh)
@@ -198,25 +204,15 @@ def run(*, refresh: bool = False) -> dict:
     )
     serving_path = save_model(production_bundle, settings.model_dir)
 
-    figure_paths = create_all_figures(
-        feature_frame,
-        model_bundle.predictions,
-        settings.images_dir,
-        threshold=model_bundle.results["risk_threshold_annualized_vol"],
-        ticker=settings.ticker,
-    )
+    # Stage 13: reuse the saved serving model for scoring rather than refitting.
+    scoring_bundle = production_bundle
+    scoring_mode = "refitted_this_run"
+    if use_saved_model:
+        saved = load_model(settings.model_dir)
+        if saved is not None:
+            scoring_bundle = saved
+            scoring_mode = "reused_saved_model"
 
-    volume_relationships = {
-        "volume_z_20_vs_current_rolling_vol_20": float(
-            feature_frame[["volume_z_20", "rolling_vol_20"]].corr().iloc[0, 1]
-        ),
-        "volume_z_20_vs_absolute_daily_return": float(
-            feature_frame["volume_z_20"].corr(feature_frame["daily_return"].abs())
-        ),
-        "volume_z_20_vs_next_five_day_vol": float(
-            feature_frame["volume_z_20"].corr(feature_frame["target_next_week_vol"])
-        ),
-    }
     # Stage 11: uncertainty around the headline metric, and two interval scenarios.
     holdout = model_bundle.predictions
     residuals = holdout["actual_next_five_day_vol"] - holdout["ridge_predicted_vol"]
@@ -243,6 +239,26 @@ def run(*, refresh: bool = False) -> dict:
         ),
     }
 
+    figure_paths = create_all_figures(
+        feature_frame,
+        model_bundle.predictions,
+        settings.images_dir,
+        threshold=model_bundle.results["risk_threshold_annualized_vol"],
+        ticker=settings.ticker,
+        uncertainty=uncertainty,
+    )
+
+    volume_relationships = {
+        "volume_z_20_vs_current_rolling_vol_20": float(
+            feature_frame[["volume_z_20", "rolling_vol_20"]].corr().iloc[0, 1]
+        ),
+        "volume_z_20_vs_absolute_daily_return": float(
+            feature_frame["volume_z_20"].corr(feature_frame["daily_return"].abs())
+        ),
+        "volume_z_20_vs_next_five_day_vol": float(
+            feature_frame["volume_z_20"].corr(feature_frame["target_next_week_vol"])
+        ),
+    }
     metrics = {
         "project": "Weekly ETF Risk Monitor",
         "author": "Paritosh Dwivedi",
@@ -274,7 +290,10 @@ def run(*, refresh: bool = False) -> dict:
         },
         "uncertainty": uncertainty,
         "feature_relationships": volume_relationships,
-        "latest_risk_snapshot": _latest_risk_snapshot(feature_frame, production_bundle),
+        "latest_risk_snapshot": {
+            **_latest_risk_snapshot(feature_frame, scoring_bundle),
+            "scoring_mode": scoring_mode,
+        },
         "artifacts": {
             "predictions": str(prediction_path.relative_to(settings.project_root)),
             "risk_threshold_sensitivity": str(sensitivity_path.relative_to(settings.project_root)),
@@ -299,8 +318,13 @@ def main() -> None:
         action="store_true",
         help="Acquire a new raw file instead of using the latest validated cache.",
     )
+    parser.add_argument(
+        "--use-saved-model",
+        action="store_true",
+        help="Score the current signal with model/model.pkl instead of refitting.",
+    )
     args = parser.parse_args()
-    metrics = run(refresh=args.refresh)
+    metrics = run(refresh=args.refresh, use_saved_model=args.use_saved_model)
     snapshot = metrics["latest_risk_snapshot"]
     print(json.dumps(snapshot, indent=2))
 

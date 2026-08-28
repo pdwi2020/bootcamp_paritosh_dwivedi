@@ -1,7 +1,7 @@
 {
   "project": "Weekly ETF Risk Monitor",
   "author": "Paritosh Dwivedi",
-  "generated_at_utc": "2026-08-28T09:10:30.111726+00:00",
+  "generated_at_utc": "2026-08-28T11:18:21.791829+00:00",
   "ticker": "SPY",
   "data": {
     "raw_file": "data/raw/spy_daily_20260826T030031701985Z.csv",
@@ -451,7 +451,8 @@
         "threshold": 6.0
       }
     },
-    "decision_language": "The model does not flag elevated risk; maintain exposure only within the existing mandate."
+    "decision_language": "The model does not flag elevated risk; maintain exposure only within the existing mandate.",
+    "scoring_mode": "refitted_this_run"
   },
   "artifacts": {
     "predictions": "reports/model_predictions.csv",
@@ -464,7 +465,8 @@
       "reports/images/volatility_and_risk_threshold.png",
       "reports/images/regression_predictions.png",
       "reports/images/return_distribution.png",
-      "reports/images/classification_confusion_matrix.png"
+      "reports/images/classification_confusion_matrix.png",
+      "reports/images/uncertainty_intervals.png"
     ]
   }
 }
