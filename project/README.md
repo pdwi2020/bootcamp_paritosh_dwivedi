@@ -336,6 +336,25 @@ returns **503**, not 500, so a monitor can tell "not ready" from "broken".
 curl -s -o chart.png http://127.0.0.1:5001/plot     # HTTP 200, image/png, ~161 KB
 ```
 
+**Run the whole analysis over HTTP**
+
+```bash
+curl -s -X POST http://127.0.0.1:5001/run_full_analysis
+```
+Regenerates metrics, figures, model artifacts and the deck, then returns a summary
+with the artifact list. POST is the honest verb because it mutates the repository;
+GET is accepted as well so the route is easy to demonstrate.
+
+**Refit with your own parameters, without touching the committed artifacts**
+
+```bash
+curl -s http://127.0.0.1:5001/run_full_analysis/0.80/0.25
+```
+Refits at a 0.80 risk quantile and a 0.25 test fraction and returns the resulting
+metrics in memory. It deliberately writes nothing: overwriting the committed
+numbers with exploratory parameters would make them untraceable. Out-of-range or
+non-numeric values return **400**.
+
 `notebooks/project_pipeline.ipynb` section 14 calls these same endpoints with
 `requests` and leaves the output visible as testing evidence.
 

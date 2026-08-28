@@ -879,6 +879,19 @@ finally:
     ),
     markdown(
         """
+### Monitoring dashboard wireframe (Stage 14)
+
+`reports/images/dashboard_sketch.png` sketches the panels an operator would watch, one row per
+monitoring layer, each panel naming its chart and its alert threshold.
+"""
+    ),
+    code(
+        """
+display(Image(filename=str(settings.images_dir / 'dashboard_sketch.png')))
+"""
+    ),
+    markdown(
+        """
 The API returns the same figures as the pipeline's own snapshot, an incomplete body is rejected with
 **400** and a message naming every missing feature, and `/plot` serves the chart as a PNG. The served
 answer and the analysed answer come from one function, so they cannot drift apart.

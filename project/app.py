@@ -18,6 +18,10 @@ Endpoints
 ``GET  /schema``    the feature contract a caller must satisfy
 ``POST /predict``   score one observation; JSON body of feature name to number
 ``GET  /plot``      the volatility-and-threshold chart as a PNG
+``POST /run_full_analysis``  run the whole pipeline and regenerate every artifact
+``GET  /run_full_analysis/<risk_quantile>/<test_fraction>``
+                    refit with your own parameters and return the metrics, without
+                    touching the committed artifacts
 """
 
 from __future__ import annotations
@@ -105,6 +109,92 @@ def plot():
             {"error": f"{figure.name} not generated; run python run_pipeline.py first"}
         ), 404
     return send_file(figure, mimetype="image/png")
+
+
+@app.route("/run_full_analysis", methods=["GET", "POST"])
+def run_full_analysis():
+    """Run the pipeline end to end and report the artifacts it regenerated.
+
+    This mutates the repository -- metrics, figures, model bundles and the deck
+    are all rewritten -- so POST is the honest verb. GET is accepted too because
+    it makes the route trivial to demonstrate from a browser or plain curl.
+    Expect roughly half a minute.
+    """
+
+    from run_pipeline import run
+
+    logger.info("full analysis requested (method=%s)", request.method)
+    try:
+        metrics = run(refresh=False)
+    except Exception as exc:  # noqa: BLE001 - surface any pipeline failure as 500 JSON
+        logger.exception("full analysis failed")
+        return jsonify({"error": f"pipeline failed: {exc}"}), 500
+
+    snapshot = metrics["latest_risk_snapshot"]
+    regression = metrics["models"]["regression"]
+    logger.info("full analysis complete: %s", snapshot["risk_classification"])
+    return jsonify(
+        {
+            "status": "complete",
+            "as_of_date": snapshot["as_of_date"],
+            "risk_classification": snapshot["risk_classification"],
+            "elevated_risk_score": snapshot["elevated_risk_score"],
+            "ridge_mae": regression["ridge"]["mae"],
+            "baseline_mae": regression["recent_volatility_baseline"]["mae"],
+            "rows": metrics["data"]["rows_raw"],
+            "artifacts": metrics["artifacts"],
+        }
+    )
+
+
+@app.get("/run_full_analysis/<risk_quantile>/<test_fraction>")
+def run_parameterised_analysis(risk_quantile: str, test_fraction: str):
+    """Refit with caller-supplied parameters and return the resulting metrics.
+
+    Deliberately does **not** write anything. Overwriting the committed artifacts
+    with someone's exploratory parameters would make the repository's reported
+    numbers untraceable, so this variant answers in-memory only.
+    """
+
+    try:
+        quantile = float(risk_quantile)
+        fraction = float(test_fraction)
+    except ValueError:
+        return jsonify({"error": "both parameters must be numbers"}), 400
+
+    if not 0.0 < quantile < 1.0:
+        return jsonify({"error": f"risk_quantile must be in (0, 1), got {quantile}"}), 400
+    if not 0.05 <= fraction <= 0.5:
+        return jsonify({"error": f"test_fraction must be in [0.05, 0.5], got {fraction}"}), 400
+
+    from src.config import get_settings as _settings
+    from src.modeling import fit_risk_models
+    from src.storage import read_dataframe
+
+    settings = _settings()
+    dataset = settings.processed_dir / "spy_model_dataset.parquet"
+    if not dataset.exists():
+        return jsonify({"error": "run the pipeline first; no model dataset found"}), 503
+
+    logger.info("parameterised refit: quantile=%.3f fraction=%.3f", quantile, fraction)
+    bundle = fit_risk_models(
+        read_dataframe(dataset),
+        test_fraction=fraction,
+        risk_quantile=quantile,
+        include_diagnostics=False,
+    )
+    results = bundle.results
+    return jsonify(
+        {
+            "inputs": {"risk_quantile": quantile, "test_fraction": fraction},
+            "regression": results["regression"],
+            "classification": results["classification"],
+            "risk_threshold_annualized_vol": results["risk_threshold_annualized_vol"],
+            "train_rows": results["train_rows"],
+            "test_rows": results["test_rows"],
+            "note": "computed in memory; committed artifacts were not modified",
+        }
+    )
 
 
 if __name__ == "__main__":

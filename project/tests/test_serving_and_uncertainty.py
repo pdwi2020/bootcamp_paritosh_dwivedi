@@ -253,3 +253,54 @@ def test_api_health_reports_model_state():
     body = api_module.app.test_client().get("/health").get_json()
     assert body["status"] == "ok"
     assert "model_loaded" in body
+
+
+# --- optional routes and the monitoring wireframe -----------------------
+
+
+def test_dashboard_sketch_renders(tmp_path):
+    import matplotlib.pyplot as plt
+
+    from src.plotting import plot_dashboard_sketch
+
+    path = plot_dashboard_sketch(tmp_path)
+    assert path.name == "dashboard_sketch.png"
+    assert path.stat().st_size > 20_000
+    plt.close("all")
+
+
+def test_parameterised_analysis_validates_its_inputs():
+    import app as api_module
+
+    client = api_module.app.test_client()
+    assert client.get("/run_full_analysis/1.5/0.25").status_code == 400
+    assert client.get("/run_full_analysis/0.75/0.9").status_code == 400
+    assert client.get("/run_full_analysis/abc/0.25").status_code == 400
+
+
+def test_parameterised_analysis_does_not_touch_committed_artifacts():
+    """The exploratory route must never overwrite the repository's own numbers."""
+
+    import hashlib
+
+    import app as api_module
+    from src.config import get_settings
+
+    metrics_path = get_settings().reports_dir / "metrics.json"
+    if not metrics_path.exists():
+        pytest.skip("pipeline has not been run in this environment")
+
+    before = hashlib.sha256(metrics_path.read_bytes()).hexdigest()
+    response = api_module.app.test_client().get("/run_full_analysis/0.75/0.20")
+    assert response.status_code in {200, 503}
+    after = hashlib.sha256(metrics_path.read_bytes()).hexdigest()
+    assert before == after
+
+
+def test_plot_route_returns_png_or_404():
+    import app as api_module
+
+    response = api_module.app.test_client().get("/plot")
+    assert response.status_code in {200, 404}
+    if response.status_code == 200:
+        assert response.mimetype == "image/png"

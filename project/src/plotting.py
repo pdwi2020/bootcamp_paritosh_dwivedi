@@ -226,6 +226,130 @@ def plot_uncertainty(
     return _finish(fig, output_dir / "uncertainty_intervals.png")
 
 
+def plot_dashboard_sketch(output_dir: Path) -> Path:
+    """Wireframe of the monitoring dashboard: panels and the chart in each.
+
+    Stage 14 optional deliverable. Deliberately a wireframe rather than a live
+    dashboard: the course stops at the conceptual boundary, and the point is to
+    show which panels exist and which metric and threshold each one carries. The
+    four rows are the four monitoring layers in docs/monitoring_plan.md.
+    """
+
+    layers = [
+        (
+            "DATA",
+            "#1D4ED8",
+            [
+                ("Freshness", "line: age of newest row\nalert > 36h on a trading day"),
+                ("Null rate", "bar: % null per feature\nalert > 1%"),
+                ("Schema", "status: column/dtype hash\nalert on any change"),
+            ],
+        ),
+        (
+            "MODEL",
+            "#047857",
+            [
+                ("Rolling MAE", "line: 60-session MAE vs 0.0399\nalert > 0.055 for 5 sessions"),
+                ("Feature drift", "line: PSI on ewma_vol_20\nwarn 0.10, alert 0.25"),
+                ("Score mix", "hist: elevated vs normal\nvs 13.3% base rate"),
+            ],
+        ),
+        (
+            "SYSTEM",
+            "#B45309",
+            [
+                ("Latency", "line: p95 / p99 on /predict\nalert p95 > 500 ms"),
+                ("Errors", "line: 4xx and 5xx rate\nalert > 2%"),
+                ("Uptime", "status: /health probe"),
+            ],
+        ),
+        (
+            "BUSINESS",
+            "#6D28D9",
+            [
+                ("Flag rate", "bar: elevated weeks per month"),
+                ("Recall by year", "bar: caught vs missed\nhistorical range 33-83%"),
+                ("Review actions", "count: flags acted on"),
+            ],
+        ),
+    ]
+
+    fig, ax = plt.subplots(figsize=(13, 8.5))
+    ax.set_xlim(0, 12)
+    ax.set_ylim(0, 10.6)
+    ax.axis("off")
+
+    ax.add_patch(plt.Rectangle((0.2, 9.4), 11.6, 0.9, facecolor="#111827", edgecolor="none"))
+    ax.text(
+        0.5,
+        9.85,
+        "Weekly ETF Risk Monitor - Monitoring Dashboard",
+        color="white",
+        fontsize=13,
+        fontweight="bold",
+        va="center",
+    )
+    ax.text(11.5, 9.85, "WIREFRAME", color="#9CA3AF", fontsize=9, va="center", ha="right")
+
+    ax.add_patch(
+        plt.Rectangle((0.2, 8.3), 11.6, 0.95, facecolor="#F3F4F6", edgecolor=GRAY, linewidth=1)
+    )
+    for x, label, value in (
+        (0.6, "Current signal", "NORMAL"),
+        (3.4, "Risk score", "0.25  (cutoff 0.50)"),
+        (6.4, "Predicted vol", "11.3% annualised"),
+        (9.3, "Open alerts", "0"),
+    ):
+        ax.text(x, 8.95, label, fontsize=8, color=GRAY)
+        ax.text(x, 8.55, value, fontsize=11, color=BLACK, fontweight="bold")
+
+    top = 7.9
+    row_h = 1.85
+    for i, (layer, colour, panels) in enumerate(layers):
+        y = top - i * row_h
+        ax.add_patch(
+            plt.Rectangle(
+                (0.2, y - row_h + 0.25), 0.75, row_h - 0.35, facecolor=colour, edgecolor="none"
+            )
+        )
+        ax.text(
+            0.575,
+            y - row_h / 2 + 0.08,
+            layer,
+            color="white",
+            fontsize=9,
+            fontweight="bold",
+            rotation=90,
+            ha="center",
+            va="center",
+        )
+        for j, (title, body) in enumerate(panels):
+            x = 1.15 + j * 3.62
+            ax.add_patch(
+                plt.Rectangle(
+                    (x, y - row_h + 0.25),
+                    3.4,
+                    row_h - 0.35,
+                    facecolor="white",
+                    edgecolor=colour,
+                    linewidth=1.3,
+                )
+            )
+            ax.text(x + 0.14, y - 0.05, title, fontsize=9.5, fontweight="bold", color=BLACK)
+            ax.text(x + 0.14, y - 0.42, body, fontsize=8, color=GRAY, va="top")
+
+    ax.text(
+        0.2,
+        0.28,
+        "Alert routing and the first runbook step for every threshold above are in "
+        "docs/monitoring_plan.md; the handoff path is in docs/handoff_plan.md.",
+        fontsize=8,
+        color=GRAY,
+    )
+    fig.tight_layout()
+    return _finish(fig, output_dir / "dashboard_sketch.png")
+
+
 def create_all_figures(
     feature_frame: pd.DataFrame,
     predictions: pd.DataFrame,
@@ -246,4 +370,5 @@ def create_all_figures(
     ]
     if uncertainty is not None:
         figures.append(plot_uncertainty(predictions, uncertainty, output_dir))
+    figures.append(plot_dashboard_sketch(output_dir))
     return figures
